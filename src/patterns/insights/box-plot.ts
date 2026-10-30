@@ -1,4 +1,5 @@
 import { renderHeadingHtml, type HeadingLevel } from "../../foundations/a11y/heading.js";
+import { chartDomain } from "./chart-presentation.js";
 import { BaseElement } from "../../core/index.js";
 
 export interface BoxPlotRow {
@@ -88,24 +89,32 @@ export function boxPlotPosition(value: number, domain: BoxPlotDomain, scale: Box
 }
 
 const styles = `
-  :host { display:block; container-type:inline-size; contain-intrinsic-inline-size:36rem; color:var(--boe-token-text-text, #1f1e1b); font:inherit; min-width:0 }
+[part="whisker-label"]{display:block;font-size:.75rem;color:var(--boe-token-text-text-secondary,#566781);white-space:nowrap}
+  :host { display:block; container-type:inline-size; contain-intrinsic-inline-size:36rem; color:var(--boe-chart-ink,color-mix(in srgb,var(--boe-token-text-text,#102347) 88%,var(--boe-token-surface-surface-brand,#0061d5))); font:inherit; min-width:0 }
   :host([orientation=vertical]) { contain:layout }
   :host([hidden]) { display:none !important }
-  [part=panel] { padding:1.25rem; background:var(--boe-token-surface-surface, #fff); border:1px solid var(--boe-token-stroke-stroke, #dedfe4); border-radius:0.75rem; min-width:0 }
+  [part=panel] { padding:1.5rem; background:var(--boe-token-surface-surface, #fff); border:1px solid var(--boe-token-stroke-stroke, #dedfe4); border-radius:0.375rem; min-width:0 }
+  *, *::before, *::after { box-sizing:border-box }
   [part=header] { display:flex; justify-content:space-between; align-items:start; gap:0.75rem; flex-wrap:wrap; margin-bottom:1.5rem }
   :host([embedded]) [part=panel] { padding:0; background:none; border:0; border-radius:0 }
-  :is(h1,h2,h3,h4,h5,h6) { margin:0; font:inherit; font-weight:600; font-size:1rem }
+  :is(h1,h2,h3,h4,h5,h6) { margin:0; font:inherit; font-weight:600; font-size:1.125rem }
   [part=description], [part=note] { color:var(--boe-token-text-text-secondary, #626b7d); font-size:0.82rem; line-height:1.4 }
   [part=note] { margin:0.75rem 0 0; max-inline-size:65ch; font-size:.75rem }
   button[part=table-toggle] { font:inherit; color:inherit; background:none; border:0; border-radius:0.25rem; cursor:pointer; padding:0.2rem 0.35rem; text-decoration:underline; text-underline-offset:0.2em }
   button:focus-visible { outline:2px solid var(--boe-token-surface-surface-brand, #0061d5); outline-offset:3px }
-  [part=plot] { display:grid; gap:0.75rem; min-width:0 }
+  [part=plot] { display:grid; gap:1.25rem; min-width:0 }
   [part=axis], [part=row] { display:grid; grid-template-columns:minmax(7rem, 11rem) minmax(0,1fr); gap:0.7rem; align-items:center; min-width:0 }
   [part=axis] { margin-bottom:0.2rem }
   [part=ticks] { position:relative; height:1.8rem; color:var(--boe-token-text-text-secondary, #626b7d); font-size:0.72rem }
   [part=tick] { position:absolute; top:0; transform:translateX(-50%); white-space:nowrap }
   [part=tick]:first-child { transform:none } [part=tick]:last-child { transform:translateX(-100%) }
   [part=label] { min-width:0; overflow-wrap:anywhere; font-size:0.82rem; font-weight:600 }
+  [part=row][data-selected=true] [part=box] { border-color:var(--boe-token-text-text,#102347); background:color-mix(in srgb,var(--boe-token-surface-surface-brand,#0061d5) 24%,var(--boe-token-surface-surface,#fff)); outline:1px solid var(--boe-token-text-text,#102347) }
+  [part=row-summary], [part=reference-label], [part=selected-label] { display:block; font-size:.75rem; line-height:1.6; font-weight:400; color:var(--boe-token-text-text-secondary,#566781) }
+  [part=selected-label] { font-weight:600; color:var(--boe-token-surface-surface-brand,#0061d5) }
+  [part=selection] { border-top:1px solid var(--boe-token-stroke-stroke,#dce3ed); margin-top:1.25rem; padding-top:1rem; display:grid; gap:.5rem; font-size:.8125rem; line-height:1.6 }
+  [part=clear-selection] { justify-self:start; font:inherit; background:none; border:0; text-decoration:underline; color:var(--boe-token-surface-surface-brand,#0061d5); cursor:pointer; padding:.5rem 0 }
+  details { font-weight:400; line-height:1.6; } summary { cursor:pointer; font-size:.75rem; }
   [part=row] { border-radius:0.3rem; padding:0.1rem 0 }
   [part=row]:hover, [part=row]:focus-within { background:var(--boe-token-surface-surface-secondary, #f5f7fb) }
   [part=mark] { position:relative; appearance:none; display:block; width:100%; height:2.8rem; padding:0; border:0; background:none; cursor:help; color:inherit }
@@ -113,14 +122,36 @@ const styles = `
   [part=gridline] { position:absolute; top:0; bottom:0; border-left:1px solid var(--boe-boxplot-grid, var(--boe-token-stroke-stroke, #dedfe4)); pointer-events:none }
   [part=whisker] { position:absolute; top:50%; height:0; border-top:1px solid var(--boe-boxplot-whisker, var(--boe-token-text-text-secondary, #626b7d)); pointer-events:none }
   [part=cap], [part=median], [part=reference] { position:absolute; top:25%; height:50%; width:2px; transform:translateX(-50%); background:var(--boe-boxplot-whisker, var(--boe-token-text-text-secondary, #626b7d)); pointer-events:none }
-  [part=box] { position:absolute; top:25%; height:50%; box-sizing:border-box; border:2px solid var(--boe-boxplot-edge, var(--boe-token-surface-surface-brand, #0061d5)); border-radius:0.2rem; background:var(--boe-boxplot-fill, color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 18%, var(--boe-token-surface-surface, #fff))); pointer-events:none }
+  [part=box] { position:absolute; top:25%; height:50%; box-sizing:border-box; border:1px solid var(--boe-boxplot-edge, #647891); border-radius:0.2rem; background:var(--boe-boxplot-fill, color-mix(in srgb, #91a8c5 28%, var(--boe-token-surface-surface, #fff))); pointer-events:none }
   [part=median] { top:20%; height:60%; width:3px; background:var(--boe-boxplot-median, var(--boe-token-text-text, #1f1e1b)) }
-  [part=reference] { top:8%; height:84%; border-left:2px dashed var(--boe-boxplot-reference, #b54a1b); background:none }
+  [part=reference] { top:8%; height:84%; border-left:2px dashed var(--boe-boxplot-reference, #647891); background:none }
   [part=dot] { position:absolute; width:0.32rem; height:0.32rem; border-radius:50%; transform:translate(-50%,-50%); background:var(--boe-boxplot-dot, #354668); pointer-events:none }
   [part=detail] { display:none; position:absolute; z-index:3; left:50%; bottom:100%; transform:translateX(-50%); box-sizing:border-box; width:max-content; max-width:min(14rem, 85vw); max-width:min(14rem, calc(100cqi - 2rem)); padding:0.55rem 0.7rem; border-radius:0.35rem; background:var(--boe-token-surface-surface, #fff); border:1px solid var(--boe-token-stroke-stroke, #dedfe4); box-shadow:0 4px 16px #0002; text-align:left; font-size:0.75rem; line-height:1.5; white-space:normal; overflow-wrap:anywhere; pointer-events:none }
   [part=mark]:is(:hover,:focus-visible) [part=detail] { display:block }
-  [part=table-wrap] { overflow:auto; max-width:100% } table { border-collapse:collapse; width:100%; font-size:0.8rem } th,td { padding:0.4rem 0.5rem; text-align:left; border-bottom:1px solid var(--boe-token-stroke-stroke, #dedfe4) } th { white-space:nowrap } caption { text-align:left; font-weight:700; padding:0.3rem 0 }
+  :host([selectable]) [part=detail] { display:none!important }
+  ::slotted([slot=footer]) { display:block; margin-top:.75rem; font-size:.75rem; line-height:1.5; color:var(--boe-token-text-text-secondary,#566781) }
+  [part=footer] { margin-top:1rem; padding-top:1rem; border-top:1px solid var(--boe-token-stroke-stroke,#dce3ed) }
+  [part=table-wrap] { overflow:auto; max-width:100% } table { border-collapse:collapse; width:100%; font-size:0.8rem } th,td { padding:0.4rem 0.5rem; text-align:left; vertical-align:top; border-bottom:1px solid var(--boe-token-stroke-stroke, #dedfe4) } th { white-space:nowrap } caption { text-align:left; font-weight:700; padding:0.3rem 0 }
+  @container (max-width:480px) {
+    table { table-layout:fixed; }
+    th:first-child { width:34%; white-space:normal; }
+    th:nth-child(2) { width:22%; }
+    th:nth-child(3) { width:26%; }
+    th:last-child { width:18%; }
+    th,td { padding:.5rem .25rem; font-size:.75rem; overflow-wrap:anywhere; }
+    thead th:not(:first-child),td:nth-child(2),td:last-child { white-space:nowrap; overflow-wrap:normal; }
+    summary { overflow-wrap:anywhere; }
+    [data-orientation=horizontal] [part=row] { grid-template-columns:1fr; gap:.3rem; }
+    [data-orientation=horizontal] [part=axis] { grid-template-columns:1fr; }
+    [data-orientation=horizontal] [part=axis] > span { display:none; }
+    [part=panel] { padding:1rem; }
+  }
+  @container (max-width:18rem) { table { min-inline-size:24rem; } }
+  [part=table-summary] > :is(th,td) { border-bottom:0; }
+  [part=table-detail] > td { padding-top:0; }
+  [part=table-detail] details > div { padding-top:.5rem; }
   [part=table-wrap]:focus-visible { outline:2px solid var(--boe-token-surface-surface-brand, #0061d5); outline-offset:-2px }
+  [part=empty][data-loading=true] { min-block-size:14rem; background:var(--boe-token-surface-surface-secondary,#f4f6f8) }
   [part=empty] { padding:1.2rem; color:var(--boe-token-text-text-secondary, #626b7d) }
   [part=vertical-plot] { position:relative; padding-left:3.5rem; max-width:42rem; margin-inline:auto }
   [part=plot-scroll] { overflow:auto; max-width:100%; min-width:0 }
@@ -138,7 +169,7 @@ const styles = `
   [data-orientation=vertical] [part=box] { left:33% !important; width:34% !important; bottom:var(--start); height:var(--size); top:auto }
   [data-orientation=vertical] [part=cap], [data-orientation=vertical] [part=median], [data-orientation=vertical] [part=reference] { left:27% !important; width:46%; height:2px; top:auto; bottom:var(--pos); transform:translateY(50%) }
   [data-orientation=vertical] [part=median] { left:23% !important; width:54%; height:3px }
-  [data-orientation=vertical] [part=reference] { left:16% !important; width:68%; height:0; border-left:0; border-top:2px dashed var(--boe-boxplot-reference, #b54a1b) }
+  [data-orientation=vertical] [part=reference] { left:16% !important; width:68%; height:0; border-left:0; border-top:2px dashed var(--boe-boxplot-reference, #647891) }
   [data-orientation=vertical] [part=dot] { left:var(--jitter) !important; bottom:var(--pos); top:auto; transform:translate(-50%,50%) }
   [data-orientation=vertical] [part=detail] { position:fixed; left:var(--_boxplot-detail-x, 0px); top:var(--_boxplot-detail-y, 0px); bottom:auto; transform:none }
   @container (max-width:600px) { [part=panel] { padding:1rem } [part=axis], [part=row] { display:block } [part=axis] { padding-top:0.2rem } [part=label] { display:block; margin-bottom:0.1rem } [part=mark] { height:2.6rem } [data-orientation=vertical] [part=axis] { padding:0 } }
@@ -148,7 +179,17 @@ const styles = `
 /** Distribution chart for host-computed summary statistics. Invalid rows are omitted. */
 export class BoxPlot extends BaseElement {
   static readonly tagName = "box-box-plot";
-  static get observedAttributes(): string[] { return ["heading", "heading-level", "embedded", "hide-note", "description", "rows", "orientation", "scale", "whiskers", "unit"]; }
+  static get observedAttributes(): string[] { return ["selected-id", "selectable", "domain", "state", "status-message", "heading", "heading-level", "embedded", "hide-note", "description", "rows", "orientation", "scale", "whiskers", "unit"]; }
+  get selectedId(): string | null { return this.getAttribute("selected-id"); }
+  set selectedId(value: string | null) { value === null ? this.removeAttribute("selected-id") : this.setAttribute("selected-id",value); }
+  get selectable(): boolean { return this.hasAttribute("selectable"); }
+  set selectable(value: boolean) { this.toggleAttribute("selectable",value); }
+  get domain(): number[] { return chartDomain(this); }
+  set domain(value: number[]) { this.setAttribute("domain",JSON.stringify(value)); }
+  get state(): string { return this.getAttribute("state") ?? "ready"; }
+  set state(value: string) { this.setAttribute("state",value); }
+  get statusMessage(): string { return this.getAttribute("status-message") ?? ""; }
+  set statusMessage(value: string) { this.setAttribute("status-message",value); }
   private _rows: BoxPlotRow[] | null = null;
   private _formatter: ((value: number) => string) | null = null;
   private tableVisible = false;
@@ -226,6 +267,10 @@ export class BoxPlot extends BaseElement {
     const scrollFocused = previousScroll !== null && previousScroll === this.shadowRoot?.activeElement;
     const rows = this.rows.filter(row => validBoxPlotRow(row, this.scale));
     const domain = boxPlotDomain(rows, this.scale);
+    const bounds = this.domain;
+    if (bounds.length && this.scale === "linear" && rows.every(row => bounds[0] <= Math.min(row.min, row.reference ?? row.min) && bounds[1] >= Math.max(row.max, row.reference ?? row.max))) {
+      domain.min = bounds[0]; domain.max = bounds[1]; domain.ticks = Array.from({length:4},(_,i)=>domain.min+(domain.max-domain.min)*i/3);
+    }
     const span = domain.max - domain.min;
     const digits = span < 1 ? Math.min(12, Math.max(2, 1 - Math.floor(Math.log10(span)))) : 2;
     const defaultFormatter = new Intl.NumberFormat(undefined, { maximumFractionDigits: digits });
@@ -241,17 +286,41 @@ export class BoxPlot extends BaseElement {
       const summary = `${row.label}: median ${formatValue(row.median)}, middle half ${formatValue(row.q1)} to ${formatValue(row.q3)}, ${whiskerLabel(row, this.whiskers)} ${formatValue(low)} to ${formatValue(high)}, minimum ${formatValue(row.min)}, maximum ${formatValue(row.max)}${row.count === undefined ? "" : `, ${new Intl.NumberFormat().format(row.count)} calls`}${row.mean === undefined ? "" : `, mean ${formatValue(row.mean)}`}${row.reference === undefined ? "" : `, reference ${formatValue(row.reference)}`}`;
       const dots = (row.samples?.length ?? 0) <= 30 ? (row.samples ?? []).map((value, index) => `<span part="dot" style="left:${position(value)}%;top:${38 + (index % 5) * 6}%;--pos:${position(value)}%;--jitter:${35 + (index % 5) * 7}%"></span>`).join("") : "";
       const caps = [low, high].map(value => `<span part="cap" style="left:${position(value)}%;--pos:${position(value)}%"></span>`).join("");
-      return `<div part="row"><span part="label">${escapeHtml(row.label)}</span><div tabindex="0" role="img" part="mark" data-row-id="${escapeHtml(row.id)}" aria-label="${escapeHtml(summary)}">${this.orientation === "vertical" ? "" : grid}<span part="whisker" style="left:${position(low)}%;width:${round(position(high) - position(low))}%;${range(low, high)}"></span>${caps}<span part="box" style="left:${position(row.q1)}%;width:${round(position(row.q3) - position(row.q1))}%;${range(row.q1, row.q3)}"></span><span part="median" style="left:${position(row.median)}%;--pos:${position(row.median)}%"></span>${row.reference === undefined ? "" : `<span part="reference" style="left:${position(row.reference)}%;--pos:${position(row.reference)}%"></span>`}${dots}<span part="detail" aria-hidden="true">${escapeHtml(summary)}</span></div></div>`;
+      return `<div part="row" data-selected="${this.selectedId === row.id}"><span part="label">${escapeHtml(row.label)}<span part="row-summary">Median ${fmt(row.median)}${row.count === undefined ? "" : ` · n = ${new Intl.NumberFormat().format(row.count)}`}</span>${row.reference === undefined ? "" : `<span part="reference-label">Reference ${fmt(row.reference)}</span>`}${this.selectedId === row.id ? '<span part="selected-label">Selected</span>' : ""}</span><div tabindex="0" role="${this.selectable ? "button" : "img"}" ${this.selectable ? `aria-pressed="${this.selectedId === row.id}"` : ""} part="mark" data-row-id="${escapeHtml(row.id)}" aria-label="${escapeHtml(summary)}">${this.orientation === "vertical" ? "" : grid}<span part="whisker" style="left:${position(low)}%;width:${round(position(high) - position(low))}%;${range(low, high)}"></span>${caps}<span part="box" style="left:${position(row.q1)}%;width:${round(position(row.q3) - position(row.q1))}%;${range(row.q1, row.q3)}"></span><span part="median" style="left:${position(row.median)}%;--pos:${position(row.median)}%"></span>${row.reference === undefined ? "" : `<span part="reference" style="left:${position(row.reference)}%;--pos:${position(row.reference)}%"></span>`}${dots}<span part="detail" aria-hidden="true">${escapeHtml(summary)}</span></div></div>`;
     }).join("");
-    const optionalColumns = (["mean", "reference", "count"] as const).filter(key => rows.some(row => row[key] !== undefined));
-    const headers = ["Row", "Min", "5%", "25%", "Median", "75%", "95%", "99%", "Max", ...optionalColumns.map(key => ({mean:"Mean",reference:"Reference",count:"Count"})[key])];
-    const tableRows = rows.map(row => `<tr><th scope="row">${escapeHtml(row.label)}</th>${[row.min, row.p5, row.q1, row.median, row.q3, row.p95, row.p99, row.max].map(value => `<td>${value === undefined ? "—" : fmt(value)}</td>`).join("")}${optionalColumns.map(key => `<td>${row[key] === undefined ? "—" : key === "count" ? new Intl.NumberFormat().format(row[key]!) : fmt(row[key]!)}</td>`).join("")}</tr>`).join("");
+    const headers = ["Row", "Median", "Range", "Count"];
+    const tableRows = rows.map(row => {
+      const [low,high] = boxPlotWhiskerValues(row,this.whiskers);
+      const label = whiskerLabel(row,this.whiskers).replace("5% to 95%","P5–P95").replace("5% to 99%","P5–P99").replace("minimum to maximum","Min–max");
+      const formattedRange = this._formatter ? `${fmt(low)} – ${fmt(high)}` : `${escapeHtml(defaultFormatter.format(low))}–${fmt(high)}`;
+      return `<tr part="table-summary"><th scope="row">${escapeHtml(row.label)}${this.selectedId === row.id ? '<span part="selected-label">Selected</span>' : ""}</th><td>${fmt(row.median)}</td><td>${formattedRange}<small part="whisker-label">${label}</small></td><td>${row.count === undefined ? "—" : new Intl.NumberFormat().format(row.count)}</td></tr><tr part="table-detail"><td colspan="4"><details><summary>${escapeHtml(row.label)} quartiles &amp; extremes</summary><div>Q1 ${fmt(row.q1)} · Q3 ${fmt(row.q3)}<br>Minimum ${fmt(row.min)} · Maximum ${fmt(row.max)}${(["p5","p95","p99"] as const).filter(key=>row[key] !== undefined).map(key=>`<br>${key.toUpperCase()} ${fmt(row[key]!)}`).join("")}${row.mean === undefined ? "" : `<br>Mean ${fmt(row.mean)}`}${row.reference === undefined ? "" : `<br>Reference ${fmt(row.reference)}`}</div></details></td></tr>`;
+    }).join("");
+    const selected = rows.find(row => row.id === this.selectedId);
+    const selection = selected && !["loading","error"].includes(this.state) ? `<footer part="selection">${this.tableVisible ? "" : `<strong>${escapeHtml(selected.label)} details</strong><div>Q1 ${fmt(selected.q1)} · Median ${fmt(selected.median)} · Q3 ${fmt(selected.q3)}</div><div>${escapeHtml(whiskerLabel(selected,this.whiskers))} ${fmt(boxPlotWhiskerValues(selected,this.whiskers)[0])}–${fmt(boxPlotWhiskerValues(selected,this.whiskers)[1])} · Min–max ${fmt(selected.min)}–${fmt(selected.max)}</div>`}<button type="button" part="clear-selection">Clear selection</button></footer>` : "";
     const axis = `<div part="axis" aria-hidden="true"><span></span><div part="ticks">${ticks}</div></div>`;
     const plot = this.orientation === "vertical"
       ? `<div part="vertical-plot">${axis}<div part="plot-scroll" tabindex="0" role="region" aria-label="${heading} vertical plot"><div part="plot" id="boxplot-chart" role="group" aria-label="${heading}"><div part="gridlines" aria-hidden="true">${grid}</div>${marks}</div></div></div>`
       : `<div part="plot" id="boxplot-chart" role="group" aria-label="${heading}">${axis}${marks}</div>`;
-    host.innerHTML = `<section part="panel" data-orientation="${this.orientation}" aria-label="${heading}" style="--row-count:${Math.max(1, rows.length)}"><header part="header"><div>${renderHeadingHtml(this.heading, {level:this.headingLevel, part:"heading"})}${this.description ? `<div part="description">${escapeHtml(this.description)}</div>` : ""}${this.hideNote ? "" : `<p part="note">Box: middle 50%; line: median; whiskers: ${this.whiskers === "min-max" ? "minimum–maximum" : this.whiskers === "p5-p95" ? "5th–95th percentile" : "5th–99th percentile"}${this.whiskers === "min-max" ? "" : " (missing percentiles use minimum–maximum)"}. ${this.scale === "log" ? "Logarithmic scale." : "Linear scale."}</p>`}</div><button part="table-toggle" type="button" aria-expanded="${this.tableVisible}" aria-controls="${this.tableVisible ? "boxplot-table" : "boxplot-chart"}">${this.tableVisible ? "Show chart" : "Show as a table"}</button></header>${this.tableVisible ? `<div part="table-wrap" id="boxplot-table" role="region" aria-label="${heading} data table" tabindex="0"><table><caption>${heading}</caption><thead><tr>${headers.map(label => `<th scope="col">${label}</th>`).join("")}</tr></thead><tbody>${tableRows}</tbody></table></div>` : rows.length ? plot : `<div part="empty" id="boxplot-chart">No valid distribution rows to display.</div>`}</section>`;
+    const note = this.hideNote ? "" : `<p part="note">Box: middle 50%; line: median; whiskers: ${this.whiskers === "min-max" ? "minimum–maximum" : this.whiskers === "p5-p95" ? "P5–P95" : "P5–P99"}${this.whiskers !== "min-max" && rows.some(row=>row.p5 === undefined || (this.whiskers === "p5-p95" ? row.p95 === undefined : row.p99 === undefined)) ? " (missing percentiles use minimum–maximum)" : ""}. ${this.scale === "log" ? "Logarithmic scale." : ""}</p>`;
+    const unavailable = this.state === "loading" || this.state === "error";
+    const content = unavailable ? `<div part="empty" data-loading="${this.state === "loading"}" role="status">${escapeHtml(this.statusMessage || (this.state === "loading" ? "Loading observations…" : "Observations could not be loaded."))}</div>`
+      : !rows.length ? `<div part="empty" id="boxplot-chart">No valid distribution rows to display.</div>`
+      : this.tableVisible ? `<div part="table-wrap" id="boxplot-table" role="region" aria-label="${heading} data table" tabindex="0"><table><caption>${heading}</caption><thead><tr>${headers.map(label=>`<th scope="col">${label}</th>`).join("")}</tr></thead><tbody>${tableRows}</tbody></table></div>`
+      : rows.length ? plot : `<div part="empty" id="boxplot-chart">No valid distribution rows to display.</div>`;
+    host.innerHTML = `<section part="panel" data-orientation="${this.orientation}" aria-label="${heading}" aria-busy="${this.state === "loading"}" style="--row-count:${Math.max(1,rows.length)}">
+      <header part="header"><div>${renderHeadingHtml(this.heading,{level:this.headingLevel,part:"heading"})}${this.description ? `<div part="description">${escapeHtml(this.description)}</div>` : ""}</div></header>
+      ${content}${unavailable ? "" : note}${selection}
+      <footer part="footer"><button part="table-toggle" type="button" ${unavailable || !rows.length ? "hidden" : ""} aria-expanded="${this.tableVisible}" aria-controls="${this.tableVisible ? "boxplot-table" : "boxplot-chart"}">${this.tableVisible ? "Show chart" : "Show as a table"}</button><slot name="footer"></slot></footer>
+      ${this.state === "partial" || this.state === "stale" ? `<div part="note" role="status">${escapeHtml(this.statusMessage || (this.state === "partial" ? "Partial sample coverage." : "Cached observations."))}</div>` : ""}
+    </section>`;
+
     host.querySelector('[part="table-toggle"]')?.addEventListener("click", () => { this.tableVisible = !this.tableVisible; this.update(); this.shadowRoot?.querySelector<HTMLButtonElement>('[part="table-toggle"]')?.focus(); });
+    host.querySelector('[part="clear-selection"]')?.addEventListener("click", () => { this.selectedId=null; this.dispatchEvent(new CustomEvent("selection-cleared",{bubbles:true,composed:true,detail:{selectedId:null}})); (this.shadowRoot?.querySelector<HTMLElement>('[part="mark"]') ?? this.shadowRoot?.querySelector<HTMLButtonElement>('[part="table-toggle"]'))?.focus(); });
+    if (this.selectable) host.querySelectorAll<HTMLElement>('[part="mark"]').forEach(mark => {
+      const select = () => { const id=mark.dataset.rowId!; this.selectedId=id; this.dispatchEvent(new CustomEvent("row-selected",{bubbles:true,composed:true,detail:{id}})); };
+      mark.addEventListener("click",select);
+      mark.addEventListener("keydown",event=>{if(event.key === "Enter" || event.key === " "){event.preventDefault();select();}});
+    });
     if (this.orientation === "vertical") {
       host.querySelectorAll<HTMLElement>('[part="mark"]').forEach(mark => {
         mark.addEventListener("mouseenter", () => this.positionDetail(mark));

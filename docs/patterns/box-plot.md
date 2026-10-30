@@ -28,6 +28,22 @@ Embedding: `heading-level` / `headingLevel` chooses a native heading from 1 thro
 
 Vertical distributions keep every run on one scrollable row. The keyboard-focusable plot region scrolls horizontally when there are more columns than fit, while its value axis stays visible. Grid lines continue across columns and their gaps on the shared scale. Hover and keyboard focus show the full summary, including the first and last columns.
 
-The table omits Mean, Reference or Count when that field is absent from every valid row. Any supplied value, including zero, keeps its column; other rows show an em dash for missing values. Fixed percentile columns remain available for comparison.
+The compact table keeps median, actual whisker range and count visible; missing values use an em dash. Quartiles, extrema and optional percentiles/mean/reference remain in each row’s disclosure, including numeric zero.
 
-Default fill and edge use semantic brand/surface tokens; median uses primary text, whiskers use secondary text and grid lines use stroke. Switching or overriding the host design tokens updates those defaults. Explicit `--boe-boxplot-*` overrides retain precedence.
+Default fill and edge use restrained cool-gray context; selectable rows add blue fill and an explicit selected label; median uses primary text, whiskers use secondary text and grid lines use stroke. Switching or overriding the host design tokens updates those defaults. Explicit `--boe-boxplot-*` overrides retain precedence.
+
+## Compact summary and selection
+
+The summary table now prioritizes row, median, actual whisker range and count.
+Quartiles, extrema and optional percentiles/mean/reference remain in each row's
+native “Quartiles & extremes” disclosure. Labels sit above marks in narrow
+horizontal layouts, with the shared axis retained. Visible row copy includes
+median and sample count. References are labelled only on their own row.
+
+Set `selectable` for click/Enter/Space selection, `selected-id` / `selectedId`
+for host selection, and listen for `row-selected` (`{id}`). A persistent details
+footer and Clear selection replace the redundant hover tooltip in this mode.
+Legacy nonselectable rows retain hover/focus summaries. `domain` can provide
+containing minimum/maximum bounds for a shared linear scale. Loading, error,
+partial and stale states use `state` and optional `status-message`; sampling
+windows, definitions and the meaning of references belong in `description`.

@@ -51,13 +51,13 @@ describe("BoxPlot", () => {
     chart.rows = [row];
     document.body.append(chart);
     (chart.shadowRoot?.querySelector('[part="table-toggle"]') as HTMLButtonElement).click();
-    expect(chart.shadowRoot?.querySelectorAll("tbody tr")).toHaveLength(1);
+    expect(chart.shadowRoot?.querySelectorAll('tbody tr[part="table-summary"]')).toHaveLength(1);
     expect(chart.shadowRoot?.querySelector("caption")?.textContent).toBe("Distribution");
-    expect(chart.shadowRoot?.querySelectorAll("thead th")).toHaveLength(11);
+    expect(chart.shadowRoot?.querySelectorAll("thead th")).toHaveLength(4);
     expect(chart.shadowRoot?.querySelector('[part="table-wrap"]')?.getAttribute("tabindex")).toBe("0");
     expect(chart.shadowRoot?.querySelector('[part="table-wrap"]')?.getAttribute("aria-label")).toBe("Distribution data table");
     chart.rows = [row, { ...row, id: "signin", label: "Signing in" }];
-    expect(chart.shadowRoot?.querySelectorAll("tbody tr")).toHaveLength(2);
+    expect(chart.shadowRoot?.querySelectorAll('tbody tr[part="table-summary"]')).toHaveLength(2);
     (chart.shadowRoot?.querySelector('[part="table-toggle"]') as HTMLButtonElement).click();
     expect(chart.shadowRoot?.querySelectorAll('[part="mark"]')).toHaveLength(2);
   });
@@ -105,20 +105,22 @@ describe("BoxPlot theme, embedding and optional table contracts", () => {
   const mount=(rows:BoxPlotRow[]):BoxPlot=>{const chart=new BoxPlot();chart.rows=rows;document.body.append(chart);return chart;};
   const table=(chart:BoxPlot):string[]=>{(chart.shadowRoot!.querySelector('[part="table-toggle"]') as HTMLButtonElement).click();return [...chart.shadowRoot!.querySelectorAll('thead th')].map(th=>th.textContent!);};
   const basic:BoxPlotRow={id:"basic",label:"One run",min:-2,q1:-1,median:0,q3:1,max:2};
-  it("omits optional columns absent from all valid rows",()=>{
+  it("keeps a compact summary table and excludes invalid rows",()=>{
     const chart=mount([basic,{...basic,id:"bad",mean:NaN}]);
-    expect(table(chart)).toEqual(["Row","Min","5%","25%","Median","75%","95%","99%","Max"]);
-    expect(chart.shadowRoot!.querySelectorAll('tbody tr')).toHaveLength(1);
+    expect(table(chart)).toEqual(["Row","Median","Range","Count"]);
+    expect(chart.shadowRoot!.querySelectorAll('tbody tr[part="table-summary"]')).toHaveLength(1);
   });
   it("retains zero-valued optional fields and aligns sparse cells",()=>{
     const chart=mount([basic,{...basic,id:"zero",mean:0,reference:0,count:0}]);
-    expect(table(chart).slice(-3)).toEqual(["Mean","Reference","Count"]);
-    const cells=[...chart.shadowRoot!.querySelectorAll('tbody tr')].map(tr=>[...tr.querySelectorAll('td')].slice(-3).map(td=>td.textContent));
-    expect(cells).toEqual([["—","—","—"],["0","0","0"]]);
+    expect(table(chart)).toEqual(["Row","Median","Range","Count"]);
+    const rows=[...chart.shadowRoot!.querySelectorAll('tbody tr[part="table-summary"]')];
+    expect(rows.map(tr=>tr.lastElementChild!.textContent)).toEqual(["—","0"]);
+    expect(rows[1].nextElementSibling!.querySelector('details')!.textContent).toContain("Mean 0");
+    expect(rows[1].nextElementSibling!.querySelector('details')!.textContent).toContain("Reference 0");
   });
-  it("includes only the supplied optional column",()=>{
-    const chart=mount([{...basic,mean:0}]);expect(table(chart).slice(-1)).toEqual(["Mean"]);
-    expect(chart.shadowRoot!.querySelectorAll('thead th')).toHaveLength(10);
+  it("retains optional statistics in disclosure without squeezing more columns",()=>{
+    const chart=mount([{...basic,mean:0}]);table(chart);expect(chart.shadowRoot!.querySelector("details")!.textContent).toContain("Mean 0");
+    expect(chart.shadowRoot!.querySelectorAll('thead th')).toHaveLength(4);
   });
   it.each([1,2,3,4,5,6])("uses native heading level%s with embedded and hide-note options",level=>{
     const chart=new BoxPlot();chart.setAttribute("heading-level",String(level));chart.setAttribute("embedded","");chart.setAttribute("hide-note","");chart.description="Host summary";chart.rows=[basic];document.body.append(chart);
@@ -164,4 +166,43 @@ describe("BoxPlot vertical lifecycle", () => {
   it("disconnects and recreates its resize observer across reconnect",()=>{
     const observe=vi.fn(),disconnect=vi.fn(),construct=vi.fn();vi.stubGlobal('ResizeObserver',class{constructor(){construct();}observe=observe;disconnect=disconnect;});const chart=mount();expect(observe).toHaveBeenCalledWith(chart);chart.remove();expect(disconnect).toHaveBeenCalledOnce();document.body.append(chart);expect(construct).toHaveBeenCalledTimes(2);expect(observe).toHaveBeenCalledTimes(2);
   });
+});
+
+describe("distribution inspection",()=>{
+ it("supports explicit keyboard selection, fixed domain and a clear path",()=>{
+  const chart=new BoxPlot();chart.rows=[{id:"upload",label:"files.upload",min:16,p5:21,q1:34,median:42,q3:55,p95:84,max:126,count:1204,reference:50}];chart.domain=[0,150];chart.selectable=true;chart.whiskers="p5-p95";document.body.append(chart);
+  const root=chart.shadowRoot!,mark=root.querySelector<HTMLElement>('[part="mark"]')!;
+  expect([...root.querySelectorAll('[part="tick"]')].map(n=>n.textContent)).toEqual(["0","50","100","150"]);
+  mark.focus();mark.dispatchEvent(new KeyboardEvent("keydown",{key:"Enter",bubbles:true}));
+  expect(chart.selectedId).toBe("upload");expect(root.querySelector('[part="selection"]')!.textContent).toContain("Q1 34");
+  expect(root.querySelector('[part="label"]')!.textContent).toContain("1,204");
+  (root.querySelector('[part="table-toggle"]') as HTMLButtonElement).click();
+  expect(root.querySelector('[part="table-detail"] td')!.getAttribute("colspan")).toBe("4");
+  expect(root.querySelector('[part="selection"]')!.textContent).not.toContain("Q1");
+  expect(root.querySelector('[part="table-summary"] [part="selected-label"]')!.textContent).toBe("Selected");
+  (root.querySelector('[part="clear-selection"]') as HTMLButtonElement).click();expect(chart.selectedId).toBeNull();expect(root.querySelector('[part="selection"]')).toBeNull();expect(root.activeElement).toBe(root.querySelector('[part="table-toggle"]'));chart.remove();
+ });
+});
+
+
+it("honors unpadded host bounds containing observations and references", () => {
+  const chart=new BoxPlot();chart.rows=[{id:"a",label:"A",min:16,q1:30,median:50,q3:80,max:126,reference:129}];chart.domain=[0,130];document.body.append(chart);
+  const ticks=()=>[...chart.shadowRoot!.querySelectorAll('[part="tick"]')].map(n=>n.textContent);
+  expect(ticks().at(-1)).toBe("130");
+  chart.domain=[0,128];expect(ticks().at(-1)).toBe("150");
+  chart.remove();
+});
+it("identifies percentile fallbacks per table row even with the note hidden", () => {
+  const chart=new BoxPlot();chart.rows=[row,{...row,id:"fallback",label:"Fallback",p95:undefined}];chart.whiskers="p5-p95";chart.hideNote=true;document.body.append(chart);
+  chart.shadowRoot!.querySelector<HTMLButtonElement>('[part="table-toggle"]')!.click();
+  expect([...chart.shadowRoot!.querySelectorAll('[part="whisker-label"]')].map(n=>n.textContent)).toEqual(["P5–P95","Min–max"]);
+  chart.remove();
+});
+it("shows empty state when rows disappear during table inspection and can recover", () => {
+  const chart=new BoxPlot();chart.rows=[row];document.body.append(chart);
+  chart.shadowRoot!.querySelector<HTMLButtonElement>('[part="table-toggle"]')!.click();chart.rows=[];
+  expect(chart.shadowRoot!.querySelector('[part="empty"]')?.textContent).toContain("No valid distribution");
+  expect(chart.shadowRoot!.querySelector<HTMLButtonElement>('[part="table-toggle"]')!.hidden).toBe(true);
+  expect(chart.shadowRoot!.querySelector('table')).toBeNull();
+  chart.rows=[row];expect(chart.shadowRoot!.querySelector('table')).not.toBeNull();chart.remove();
 });

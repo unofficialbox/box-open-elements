@@ -33,7 +33,7 @@ type DonutSegmentArc = {
   end: number;
 };
 
-const SEGMENT_PALETTE = ["#0061d5", "#5a7cf7", "#26c281", "#f59e0b", "#8b5cf6", "#ec4899"];
+const SEGMENT_PALETTE = ["#0061d5", "#91a8c5", "#d2dce8", "#647891", "#b5c6dc", "#3b5271"];
 
 
 const elementStyles = chartStyles + `
@@ -42,8 +42,8 @@ const elementStyles = chartStyles + `
   [part="donut-wrap"] { position:relative; inline-size:100%; max-inline-size:15rem; aspect-ratio:1; margin-inline:auto; }
   [part="chart"] { display:block; inline-size:100%; block-size:100%; }
   [part="track"] { fill:none; stroke:var(--boe-token-stroke-stroke,#e8e8e8); stroke-width:16; }
-  [part="center"] { position:absolute; inset:26%; display:grid; align-content:center; justify-items:center; gap:.25rem; text-align:center; pointer-events:none; }
-  [part="center"] [part="summary"] { font-size:clamp(1.25rem,5cqi,2rem); }
+  [part="center"] { position:absolute; inset:18%; display:grid; align-content:center; justify-items:center; gap:.25rem; text-align:center; pointer-events:none; }
+  [part="center"] [part="summary"] { font-size:clamp(1.125rem,4cqi,1.5rem); }
   [part="center-label"] { font-size:.75rem; color:var(--boe-token-text-text-secondary,#6f6f6f); }
   [part="legend"] { display:grid; gap:0; }
   [part="legend-item"] { appearance:none; display:grid; grid-template-columns:auto minmax(0,1fr) auto 3rem; inline-size:100%; gap:.625rem; padding:.875rem .5rem; font:inherit; color:inherit; background:transparent; border:1px solid transparent; border-radius:.375rem; text-align:start; cursor:pointer; }
@@ -59,6 +59,17 @@ const elementStyles = chartStyles + `
   [part="segment"][data-muted="true"] { opacity:.25; }
   [part="segment"][data-selected="true"] { stroke:var(--boe-token-text-text,#1f1e1b); stroke-width:.7; }
   [part="legend-item"][data-active="true"] { background:color-mix(in srgb,var(--boe-token-surface-surface-brand,#0061d5) 6%,transparent); }
+  [part="table-wrap"] { min-inline-size:0; max-inline-size:100%; overflow:auto; }
+  [part="table-wrap"]:focus-visible { outline:2px solid var(--boe-token-surface-surface-brand,#0061d5); outline-offset:-2px; }
+  table[part="legend"] { display:table; border-collapse:collapse; width:100%; font-size:.8125rem; }
+  [part="legend"] th, [part="legend"] td { padding:.8rem .25rem; border-bottom:1px solid var(--boe-token-stroke-stroke,#dce3ed); text-align:end; }
+  [part="legend"] td, [part="legend"] thead th:not(:first-child) { white-space:nowrap; }
+  [part="legend"] th:first-child { text-align:start; }
+  [part="legend"] thead th { font-weight:500; color:var(--boe-token-text-text-secondary,#566781); }
+  [part="legend-item"], [part="legend-static"] { display:inline-flex; align-items:center; gap:.5rem; padding:.2rem 0; inline-size:auto; min-block-size:1.8rem; }
+  [part="legend-swatch"] { background:var(--segment-color); }
+  [part="legend-item"][aria-pressed="true"]::after { content:" · Selected"; font-size:.6875rem; }
+  @container (max-width:18rem) { table[part="legend"] { min-inline-size:18rem; } }
   @media (prefers-reduced-motion:reduce) { [part="segment"] { transition:none; } }
   @container (max-width:520px) { [part="visual"] { grid-template-columns:1fr; gap:1rem; } [part="donut-wrap"] { max-inline-size:12rem; } }
 `;
@@ -66,9 +77,25 @@ const elementStyles = chartStyles + `
 export class DonutChart extends BaseElement {
   static readonly tagName: string = DEFAULT_TAG_NAME;
   static get observedAttributes(): string[] {
-    return ["actions", "heading", "message", "segments", "summary", "timeframe"];
+    return ["readonly", "category-label", "unit", "total", "total-label", "note", "state", "status-message", "actions", "heading", "message", "segments", "summary", "timeframe"];
   }
 
+  get categoryLabel(): string { return this.getAttribute("category-label") ?? "Category"; }
+  set categoryLabel(value: string) { this.setAttribute("category-label", value); }
+  get readOnly(): boolean { return this.hasAttribute("readonly"); }
+  set readOnly(value: boolean) { this.toggleAttribute("readonly", value); }
+  get total(): number | null { const value=this.getAttribute("total"); return value !== null && Number.isFinite(Number(value)) && Number(value)>0 ? Number(value) : null; }
+  set total(value: number | null) { value === null ? this.removeAttribute("total") : this.setAttribute("total",String(value)); }
+  get unit(): string { return this.getAttribute("unit") ?? ""; }
+  set unit(value: string) { this.setAttribute("unit", value); }
+  get totalLabel(): string { return this.getAttribute("total-label") ?? ""; }
+  set totalLabel(value: string) { this.setAttribute("total-label", value); }
+  get note(): string { return this.getAttribute("note") ?? ""; }
+  set note(value: string) { this.setAttribute("note", value); }
+  get state(): string { return this.getAttribute("state") ?? ""; }
+  set state(value: string) { this.setAttribute("state", value); }
+  get statusMessage(): string { return this.getAttribute("status-message") ?? ""; }
+  set statusMessage(value: string) { this.setAttribute("status-message", value); }
   private selectedSegmentId: string | null = null;
   get actions(): DonutChartAction[] {
     return this.parseJsonAttribute<DonutChartAction[]>("actions", []);
@@ -250,12 +277,12 @@ export class DonutChart extends BaseElement {
   }
 
   private getArcs(): DonutSegmentArc[] {
-    const positiveSegments = this.segments.filter(segment => Number.isFinite(segment.value) && segment.value > 0);
-    const magnitude = positiveSegments.reduce((max, segment) => Math.max(max, segment.value), 1);
-    const total = positiveSegments.reduce((sum, segment) => sum + segment.value / magnitude, 0) || 1;
+    const positiveSegments = this.segments.map((segment,index) => ({segment,index})).filter(({segment}) => Number.isFinite(segment.value) && segment.value > 0);
+    const magnitude = positiveSegments.reduce((max, {segment}) => Math.max(max, segment.value), 1);
+    const total = Math.max(positiveSegments.reduce((sum, {segment}) => sum + segment.value / magnitude, 0), (this.total ?? 0) / magnitude) || 1;
     const gap = positiveSegments.length > 1 ? 2.4 : 0;
     let current = 0;
-    return positiveSegments.map((segment, index) => {
+    return positiveSegments.map(({segment, index}) => {
       const start = current;
       const sweep = (segment.value / magnitude / total) * 360;
       current += sweep;
@@ -293,8 +320,10 @@ export class DonutChart extends BaseElement {
       ? `${this.heading}. ${segmentSummary}`
       : this.heading;
     const messageMarkup = this.message ? `<div part="message">${escapeHtml(this.message)}</div>` : "";
-    const total = arcs.reduce((sum, { segment }) => sum + segment.value, 0);
-    const centerValue = this.summary || (Number.isFinite(total) ? String(Number(total.toPrecision(15))) : "—");
+    const total = Number(arcs.reduce((sum, { segment }) => sum + segment.value, 0).toPrecision(15));
+    const centerTotal = Math.max(this.total ?? 0, total);
+    const roundedShares = arcs.some(arc => Math.abs((arc.end-arc.start)/3.6 - Number(((arc.end-arc.start)/3.6).toFixed(1))) > 1e-7);
+    const centerValue = this.summary || (Number.isFinite(centerTotal) ? String(Number(centerTotal.toPrecision(15))) + (this.unit ? ` ${this.unit}` : "") : "—");
     const summaryMarkup = `<div part="summary">${escapeHtml(centerValue)}</div>`;
     const timeframeMarkup = this.timeframe ? `<div part="timeframe">${escapeHtml(this.timeframe)}</div>` : "";
     const actionsMarkup = this.actions.length
@@ -312,7 +341,7 @@ export class DonutChart extends BaseElement {
           </div>
         `
       : "";
-    const chartMarkup = arcs.length
+    const chartMarkup = this.total !== null || this.segments.some(segment => Number.isFinite(segment.value) && segment.value >= 0)
       ? `
           <div part="visual">
             <div part="donut-wrap">
@@ -335,36 +364,18 @@ export class DonutChart extends BaseElement {
               </svg>
               <div part="center">
                 ${summaryMarkup}
-                <span part="center-label">Total</span>
+                <span part="center-label">${escapeHtml(this.totalLabel || "Total")}</span>
               </div>
             </div>
-            <div part="legend" role="list" aria-label="${escapeHtml(this.heading)} segments">
-              ${arcs
-                .map(
-                  ({ segment, index }) => {
-                    const isPressed = this.selectedSegmentId === segment.id;
-                    return `
-                    <div role="listitem"><button
-                      type="button"
-                      part="legend-item"
-                      data-segment-id="${escapeHtml(segment.id)}"
-                      data-tone="${escapeHtml(segment.tone ?? "neutral")}"
-                      data-pressed="${String(isPressed)}"
-                      aria-pressed="${String(isPressed)}"
-                      aria-label="${escapeHtml(`${segment.label}: ${segment.value}`)}"
-                    >
-                      <span part="legend-swatch" style="--segment-color:${this.segmentColor(segment, index)};"></span>
-                      <span part="legend-copy">
-                        <span part="legend-label">${escapeHtml(segment.label)}</span>
-                        <span part="legend-value">${escapeHtml(String(segment.value))}</span>
-                      </span>
-                      <span part="legend-share">${Number(((arcs[index].end - arcs[index].start) / 3.6).toFixed(1))}%</span>
-                    </button></div>
-                  `;
-                  },
-                )
-                .join("")}
-            </div>
+            <div part="table-wrap" tabindex="0" role="region" aria-label="${escapeHtml(this.heading)} data table"><table part="legend" aria-label="${escapeHtml(this.heading)} breakdown"><thead><tr><th scope="col">${escapeHtml(this.categoryLabel)}</th><th scope="col">${escapeHtml(this.unit || "Value")}</th><th scope="col">Share</th></tr></thead><tbody>
+              ${this.segments.map((segment,index) => {
+                const arc = arcs.find(item => item.segment.id === segment.id);
+                const share = arc ? `${Number(((arc.end-arc.start)/3.6).toFixed(1))}%` : segment.value === 0 ? "0%" : "—";
+                const label = `<span part="legend-swatch" style="--segment-color:${this.segmentColor(segment,index)}"></span><span part="legend-label">${escapeHtml(segment.label)}</span>`;
+                return `<tr><th scope="row">${this.readOnly ? `<span part="legend-static">${label}</span>` : `<button type="button" part="legend-item" data-segment-id="${escapeHtml(segment.id)}" aria-pressed="${this.selectedSegmentId === segment.id}" data-pressed="${this.selectedSegmentId === segment.id}" aria-label="${escapeHtml(`${segment.label}: ${segment.value}`)}">${label}</button>`}</th><td><span part="legend-value">${Number.isFinite(segment.value) && segment.value >= 0 ? escapeHtml(String(segment.value)) : "—"}</span></td><td><span part="legend-share">${share}</span></td></tr>`;
+              }).join("")}
+              ${this.total !== null && this.total > total ? `<tr><th scope="row"><span part="legend-static"><span part="legend-swatch" style="--segment-color:#e8edf4"></span>Unclassified</span></th><td><span part="legend-value">${Number((this.total-total).toPrecision(15))}</span></td><td><span part="legend-share">${Number(((this.total-total)/this.total*100).toFixed(1))}%</span></td></tr>` : ""}
+            </tbody></table></div>
           </div>
         `
       : `<div part="empty">No donut-chart data available.</div>`;
@@ -374,6 +385,7 @@ export class DonutChart extends BaseElement {
       return;
     }
 
+    const focusedId = (this.shadowRoot.activeElement as HTMLElement | null)?.dataset.segmentId;
     host.innerHTML = `
       <article part="panel">
         <header part="header">
@@ -386,7 +398,9 @@ export class DonutChart extends BaseElement {
             ${actionsMarkup}
           </div>
         </header>
-        ${chartMarkup}
+        ${this.state && this.state !== "ready" ? `<div part="status" role="status">${escapeHtml(this.statusMessage || ({loading:"Loading observations…",error:"Observations could not be loaded.",partial:"Partial coverage; the total may include unclassified storage.",stale:"Cached data. Check the timestamp before acting."} as Record<string,string>)[this.state] || this.state)}</div>` : ""}
+        ${this.state === "loading" ? '<div part="empty" data-loading="true" aria-hidden="true"></div>' : this.state === "error" ? "" : chartMarkup}
+        ${(roundedShares || this.note || this.segments.some(segment => !Number.isFinite(segment.value) || segment.value < 0) || this.total !== null && this.total !== total) ? `<footer part="footer"><div part="note">${escapeHtml(this.note)}${roundedShares ? " Shares rounded to one decimal; totals may differ from 100%." : ""}${this.total !== null && this.total < total ? " Supplied total is smaller than classified storage; showing the classified total." : ""}${this.segments.some(segment => !Number.isFinite(segment.value) || segment.value < 0) ? " Some categories are unavailable." : ""}${this.total !== null && this.total > total ? " Unclassified storage remains in the total." : ""}</div></footer>` : ""}
       </article>
     `;
 
@@ -442,7 +456,7 @@ export class DonutChart extends BaseElement {
         });
       });
     });
-  
+    if (focusedId) this.shadowRoot.querySelectorAll<HTMLElement>('[part="legend-item"]').forEach(button => { if (button.dataset.segmentId === focusedId) button.focus(); });
   }
 }
 

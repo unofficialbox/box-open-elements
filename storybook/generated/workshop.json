@@ -1498,8 +1498,55 @@
       "category": "Insights",
       "shortDescription": "A bar chart panel for discrete activity counts.",
       "docsDescription": "Pass JSON `points`, `legend`, and `actions`; use string attributes for heading, summary, timeframe, and message.",
-      "sourceSnippet": "<box-bar-chart heading=\"Uploads per week\" timeframe=\"Last 5 weeks\" points='[{\"id\":\"w1\",\"label\":\"W1\",\"value\":42}]'></box-bar-chart>",
+      "sourceSnippet": "<box-bar-chart heading=\"Weekly uploads\" timeframe=\"Sep 28–Nov 1, 2026\" unit=\"Uploads\" x-label=\"Week of\" note=\"Illustrative data · Monday–Sunday intervals\"  points='[{\"id\":\"w1\",\"label\":\"Sep 28\",\"value\":42,\"inspection\":{\"label\":\"Week of Sep 28\",\"value\":\"42 uploads\"}},{\"id\":\"w2\",\"label\":\"Oct 5\",\"value\":51,\"inspection\":{\"label\":\"Week of Oct 5\",\"value\":\"51 uploads\",\"comparison\":\"+9 (+21.4%) vs Sep 28 · 42\"}},{\"id\":\"w3\",\"label\":\"Oct 12\",\"value\":48,\"inspection\":{\"label\":\"Week of Oct 12\",\"value\":\"48 uploads\",\"comparison\":\"−3 (−5.9%) vs Oct 5 · 51\"}},{\"id\":\"w4\",\"label\":\"Oct 19\",\"value\":64,\"inspection\":{\"label\":\"Week of Oct 19\",\"value\":\"64 uploads\",\"comparison\":\"+16 (+33.3%) vs Oct 12 · 48\"}},{\"id\":\"w5\",\"label\":\"Oct 26\",\"value\":71,\"inspection\":{\"label\":\"Latest week · Oct 26\",\"value\":\"71 uploads\",\"comparison\":\"+7 (+10.9%) vs Oct 19 · 64\"}}]' ></box-bar-chart>",
       "referenceRows": [
+        {
+          "kind": "attribute",
+          "name": "selected-id",
+          "type": "string",
+          "description": "Selected point ID. Clear selection returns inspection to the latest interval."
+        },
+        {
+          "kind": "attribute",
+          "name": "unit",
+          "type": "string",
+          "description": "Visible value-axis unit."
+        },
+        {
+          "kind": "attribute",
+          "name": "x-label",
+          "type": "string",
+          "description": "Category/interval axis label."
+        },
+        {
+          "kind": "property",
+          "name": "domain",
+          "type": "number[]",
+          "description": "Optional minimum/maximum bounds. Data is never silently clipped."
+        },
+        {
+          "kind": "attribute",
+          "name": "state",
+          "type": "string",
+          "description": "ready, loading, error, partial, or stale. Pass [] for no observations; null values preserve missing intervals."
+        },
+        {
+          "kind": "attribute",
+          "name": "status-message",
+          "type": "string",
+          "description": "Host-provided status, including an exact cache timestamp when stale."
+        },
+        {
+          "kind": "attribute",
+          "name": "note",
+          "type": "string",
+          "description": "Source, method, definition or coverage note."
+        },
+        {
+          "kind": "event",
+          "name": "selection-cleared",
+          "description": "Selection cleared; latest interval inspection restored."
+        },
         {
           "kind": "attribute",
           "name": "heading",
@@ -1510,7 +1557,7 @@
           "kind": "attribute",
           "name": "summary",
           "type": "string",
-          "description": "Headline value."
+          "description": "Optional host summary; no total is inferred for weekly users."
         },
         {
           "kind": "attribute",
@@ -1528,7 +1575,7 @@
           "kind": "attribute",
           "name": "points",
           "type": "json",
-          "description": "Bar point data."
+          "description": "Ordered observations; value is number or null. Optional partial and inspection {label,value,comparison} are host-authored."
         },
         {
           "kind": "attribute",
@@ -1556,7 +1603,47 @@
       "variants": [
         {
           "name": "Default",
-          "html": "<box-bar-chart heading=\"Uploads per week\" summary=\"71 uploads\" timeframe=\"Last 5 weeks\" message=\"Steady growth across the quarter.\" points='[{\"id\":\"w1\",\"label\":\"W1\",\"value\":42},{\"id\":\"w2\",\"label\":\"W2\",\"value\":51},{\"id\":\"w3\",\"label\":\"W3\",\"value\":48},{\"id\":\"w4\",\"label\":\"W4\",\"value\":64},{\"id\":\"w5\",\"label\":\"W5\",\"value\":71}]' legend='[{\"label\":\"Uploads\",\"tone\":\"brand\"}]' actions='[{\"id\":\"open-report\",\"label\":\"Open report\",\"tone\":\"primary\"}]'></box-bar-chart>"
+          "html": "<box-bar-chart heading=\"Weekly uploads\" timeframe=\"Sep 28–Nov 1, 2026\" unit=\"Uploads\" x-label=\"Week of\" note=\"Illustrative data · Monday–Sunday intervals\"  points='[{\"id\":\"w1\",\"label\":\"Sep 28\",\"value\":42,\"inspection\":{\"label\":\"Week of Sep 28\",\"value\":\"42 uploads\"}},{\"id\":\"w2\",\"label\":\"Oct 5\",\"value\":51,\"inspection\":{\"label\":\"Week of Oct 5\",\"value\":\"51 uploads\",\"comparison\":\"+9 (+21.4%) vs Sep 28 · 42\"}},{\"id\":\"w3\",\"label\":\"Oct 12\",\"value\":48,\"inspection\":{\"label\":\"Week of Oct 12\",\"value\":\"48 uploads\",\"comparison\":\"−3 (−5.9%) vs Oct 5 · 51\"}},{\"id\":\"w4\",\"label\":\"Oct 19\",\"value\":64,\"inspection\":{\"label\":\"Week of Oct 19\",\"value\":\"64 uploads\",\"comparison\":\"+16 (+33.3%) vs Oct 12 · 48\"}},{\"id\":\"w5\",\"label\":\"Oct 26\",\"value\":71,\"inspection\":{\"label\":\"Latest week · Oct 26\",\"value\":\"71 uploads\",\"comparison\":\"+7 (+10.9%) vs Oct 19 · 64\"}}]' ></box-bar-chart>"
+        },
+        {
+          "name": "Selected · Oct 19",
+          "html": "<box-bar-chart heading=\"Weekly uploads\" timeframe=\"Sep 28–Nov 1, 2026\" unit=\"Uploads\" x-label=\"Week of\" note=\"Illustrative data · Monday–Sunday intervals\"  points='[{\"id\":\"w1\",\"label\":\"Sep 28\",\"value\":42,\"inspection\":{\"label\":\"Week of Sep 28\",\"value\":\"42 uploads\"}},{\"id\":\"w2\",\"label\":\"Oct 5\",\"value\":51,\"inspection\":{\"label\":\"Week of Oct 5\",\"value\":\"51 uploads\",\"comparison\":\"+9 (+21.4%) vs Sep 28 · 42\"}},{\"id\":\"w3\",\"label\":\"Oct 12\",\"value\":48,\"inspection\":{\"label\":\"Week of Oct 12\",\"value\":\"48 uploads\",\"comparison\":\"−3 (−5.9%) vs Oct 5 · 51\"}},{\"id\":\"w4\",\"label\":\"Oct 19\",\"value\":64,\"inspection\":{\"label\":\"Week of Oct 19\",\"value\":\"64 uploads\",\"comparison\":\"+16 (+33.3%) vs Oct 12 · 48\"}},{\"id\":\"w5\",\"label\":\"Oct 26\",\"value\":71,\"inspection\":{\"label\":\"Latest week · Oct 26\",\"value\":\"71 uploads\",\"comparison\":\"+7 (+10.9%) vs Oct 19 · 64\"}}]' selected-id=\"w4\"></box-bar-chart>"
+        },
+        {
+          "name": "Zero measured",
+          "html": "<box-bar-chart heading=\"Weekly uploads\" timeframe=\"Sep 28–Nov 1, 2026\" unit=\"Uploads\" x-label=\"Week of\" note=\"Illustrative data · Monday–Sunday intervals\"  points='[{\"id\":\"w1\",\"label\":\"Sep 28\",\"value\":0,\"inspection\":{\"label\":\"Week of Sep 28\",\"value\":\"0 uploads\"}},{\"id\":\"w2\",\"label\":\"Oct 5\",\"value\":0,\"inspection\":{\"label\":\"Week of Oct 5\",\"value\":\"0 uploads\"}},{\"id\":\"w3\",\"label\":\"Oct 12\",\"value\":0,\"inspection\":{\"label\":\"Week of Oct 12\",\"value\":\"0 uploads\"}},{\"id\":\"w4\",\"label\":\"Oct 19\",\"value\":0,\"inspection\":{\"label\":\"Week of Oct 19\",\"value\":\"0 uploads\"}},{\"id\":\"w5\",\"label\":\"Oct 26\",\"value\":0,\"inspection\":{\"label\":\"Latest week · Oct 26\",\"value\":\"0 uploads\"}}]' ></box-bar-chart>"
+        },
+        {
+          "name": "No observations",
+          "html": "<box-bar-chart heading=\"Weekly uploads\" timeframe=\"Sep 28–Nov 1, 2026\" unit=\"Uploads\" x-label=\"Week of\" note=\"Illustrative data · Monday–Sunday intervals\"  points='[]' ></box-bar-chart>"
+        },
+        {
+          "name": "Incomplete period",
+          "html": "<box-bar-chart heading=\"Weekly uploads\" timeframe=\"Sep 28–Nov 1, 2026\" unit=\"Uploads\" x-label=\"Week of\" note=\"Illustrative data · Monday–Sunday intervals\"  points='[{\"id\":\"w1\",\"label\":\"Sep 28\",\"value\":42,\"inspection\":{\"label\":\"Week of Sep 28\",\"value\":\"42 uploads\"}},{\"id\":\"w2\",\"label\":\"Oct 5\",\"value\":51,\"inspection\":{\"label\":\"Week of Oct 5\",\"value\":\"51 uploads\",\"comparison\":\"+9 (+21.4%) vs Sep 28 · 42\"}},{\"id\":\"w3\",\"label\":\"Oct 12\",\"value\":48,\"inspection\":{\"label\":\"Week of Oct 12\",\"value\":\"48 uploads\",\"comparison\":\"−3 (−5.9%) vs Oct 5 · 51\"}},{\"id\":\"w4\",\"label\":\"Oct 19\",\"value\":64,\"inspection\":{\"label\":\"Week of Oct 19\",\"value\":\"64 uploads\",\"comparison\":\"+16 (+33.3%) vs Oct 12 · 48\"}},{\"id\":\"w5\",\"label\":\"Oct 26\",\"value\":71,\"inspection\":{\"label\":\"Latest week · Oct 26\",\"value\":\"71 uploads\",\"comparison\":\"+7 (+10.9%) vs Oct 19 · 64\"}}]' state=\"partial\" status-message=\"Oct 26–Nov 1 is incomplete. Comparisons are unavailable.\"></box-bar-chart>"
+        },
+        {
+          "name": "Missing interval",
+          "html": "<box-bar-chart heading=\"Weekly uploads\" timeframe=\"Sep 28–Nov 1, 2026\" unit=\"Uploads\" x-label=\"Week of\" note=\"Illustrative data · Monday–Sunday intervals\"  points='[{\"id\":\"w1\",\"label\":\"Sep 28\",\"value\":42,\"inspection\":{\"label\":\"Week of Sep 28\",\"value\":\"42 uploads\"}},{\"id\":\"w2\",\"label\":\"Oct 5\",\"value\":51,\"inspection\":{\"label\":\"Week of Oct 5\",\"value\":\"51 uploads\",\"comparison\":\"+9 (+21.4%) vs Sep 28 · 42\"}},{\"id\":\"w3\",\"label\":\"Oct 12\",\"value\":null,\"inspection\":{\"label\":\"Week of Oct 12\",\"value\":\"Not observed\"}},{\"id\":\"w4\",\"label\":\"Oct 19\",\"value\":64,\"inspection\":{\"label\":\"Week of Oct 19\",\"value\":\"64 uploads\"}},{\"id\":\"w5\",\"label\":\"Oct 26\",\"value\":71,\"inspection\":{\"label\":\"Latest week · Oct 26\",\"value\":\"71 uploads\",\"comparison\":\"+7 (+10.9%) vs Oct 19 · 64\"}}]' ></box-bar-chart>"
+        },
+        {
+          "name": "Cached observations",
+          "html": "<box-bar-chart heading=\"Weekly uploads\" timeframe=\"Sep 28–Nov 1, 2026\" unit=\"Uploads\" x-label=\"Week of\" note=\"Illustrative data · Monday–Sunday intervals\"  points='[{\"id\":\"w1\",\"label\":\"Sep 28\",\"value\":42,\"inspection\":{\"label\":\"Week of Sep 28\",\"value\":\"42 uploads\"}},{\"id\":\"w2\",\"label\":\"Oct 5\",\"value\":51,\"inspection\":{\"label\":\"Week of Oct 5\",\"value\":\"51 uploads\",\"comparison\":\"+9 (+21.4%) vs Sep 28 · 42\"}},{\"id\":\"w3\",\"label\":\"Oct 12\",\"value\":48,\"inspection\":{\"label\":\"Week of Oct 12\",\"value\":\"48 uploads\",\"comparison\":\"−3 (−5.9%) vs Oct 5 · 51\"}},{\"id\":\"w4\",\"label\":\"Oct 19\",\"value\":64,\"inspection\":{\"label\":\"Week of Oct 19\",\"value\":\"64 uploads\",\"comparison\":\"+16 (+33.3%) vs Oct 12 · 48\"}},{\"id\":\"w5\",\"label\":\"Oct 26\",\"value\":71,\"inspection\":{\"label\":\"Latest week · Oct 26\",\"value\":\"71 uploads\",\"comparison\":\"+7 (+10.9%) vs Oct 19 · 64\"}}]' state=\"stale\" status-message=\"Cached · updated Oct 29, 2026 at 09:00 UTC\"></box-bar-chart>"
+        },
+        {
+          "name": "Loading",
+          "html": "<box-bar-chart heading=\"Weekly uploads\" timeframe=\"Sep 28–Nov 1, 2026\" unit=\"Uploads\" x-label=\"Week of\" note=\"Illustrative data · Monday–Sunday intervals\"  points='[{\"id\":\"w1\",\"label\":\"Sep 28\",\"value\":42,\"inspection\":{\"label\":\"Week of Sep 28\",\"value\":\"42 uploads\"}},{\"id\":\"w2\",\"label\":\"Oct 5\",\"value\":51,\"inspection\":{\"label\":\"Week of Oct 5\",\"value\":\"51 uploads\",\"comparison\":\"+9 (+21.4%) vs Sep 28 · 42\"}},{\"id\":\"w3\",\"label\":\"Oct 12\",\"value\":48,\"inspection\":{\"label\":\"Week of Oct 12\",\"value\":\"48 uploads\",\"comparison\":\"−3 (−5.9%) vs Oct 5 · 51\"}},{\"id\":\"w4\",\"label\":\"Oct 19\",\"value\":64,\"inspection\":{\"label\":\"Week of Oct 19\",\"value\":\"64 uploads\",\"comparison\":\"+16 (+33.3%) vs Oct 12 · 48\"}},{\"id\":\"w5\",\"label\":\"Oct 26\",\"value\":71,\"inspection\":{\"label\":\"Latest week · Oct 26\",\"value\":\"71 uploads\",\"comparison\":\"+7 (+10.9%) vs Oct 19 · 64\"}}]' state=\"loading\"></box-bar-chart>"
+        },
+        {
+          "name": "Long category labels",
+          "html": "<box-bar-chart heading=\"Weekly uploads\" timeframe=\"Sep 28–Nov 1, 2026\" unit=\"Uploads\" x-label=\"Week of\" note=\"Illustrative data · Monday–Sunday intervals\"  points='[{\"id\":\"w1\",\"label\":\"Week beginning Sep 28, 2026 — extended category label\",\"value\":42,\"inspection\":{\"label\":\"Week of Sep 28\",\"value\":\"42 uploads\"}},{\"id\":\"w2\",\"label\":\"Week beginning Oct 5, 2026 — extended category label\",\"value\":51,\"inspection\":{\"label\":\"Week of Oct 5\",\"value\":\"51 uploads\",\"comparison\":\"+9 (+21.4%) vs Sep 28 · 42\"}},{\"id\":\"w3\",\"label\":\"Week beginning Oct 12, 2026 — extended category label\",\"value\":48,\"inspection\":{\"label\":\"Week of Oct 12\",\"value\":\"48 uploads\",\"comparison\":\"−3 (−5.9%) vs Oct 5 · 51\"}},{\"id\":\"w4\",\"label\":\"Week beginning Oct 19, 2026 — extended category label\",\"value\":64,\"inspection\":{\"label\":\"Week of Oct 19\",\"value\":\"64 uploads\",\"comparison\":\"+16 (+33.3%) vs Oct 12 · 48\"}},{\"id\":\"w5\",\"label\":\"Week beginning Oct 26, 2026 — extended category label\",\"value\":71,\"inspection\":{\"label\":\"Latest week · Oct 26\",\"value\":\"71 uploads\",\"comparison\":\"+7 (+10.9%) vs Oct 19 · 64\"}}]' ></box-bar-chart>"
+        },
+        {
+          "name": "Dense observations",
+          "html": "<box-bar-chart heading=\"Weekly uploads\" timeframe=\"Sep 28–Nov 1, 2026\" unit=\"Uploads\" x-label=\"Week of\" note=\"Illustrative data · Monday–Sunday intervals\"  points='[{\"id\":\"sample-0\",\"label\":\"Period 1\",\"value\":20},{\"id\":\"sample-1\",\"label\":\"Period 2\",\"value\":21},{\"id\":\"sample-2\",\"label\":\"Period 3\",\"value\":22},{\"id\":\"sample-3\",\"label\":\"Period 4\",\"value\":23},{\"id\":\"sample-4\",\"label\":\"Period 5\",\"value\":24},{\"id\":\"sample-5\",\"label\":\"Period 6\",\"value\":25},{\"id\":\"sample-6\",\"label\":\"Period 7\",\"value\":26},{\"id\":\"sample-7\",\"label\":\"Period 8\",\"value\":27},{\"id\":\"sample-8\",\"label\":\"Period 9\",\"value\":28},{\"id\":\"sample-9\",\"label\":\"Period 10\",\"value\":29},{\"id\":\"sample-10\",\"label\":\"Period 11\",\"value\":30},{\"id\":\"sample-11\",\"label\":\"Period 12\",\"value\":31},{\"id\":\"sample-12\",\"label\":\"Period 13\",\"value\":32},{\"id\":\"sample-13\",\"label\":\"Period 14\",\"value\":33},{\"id\":\"sample-14\",\"label\":\"Period 15\",\"value\":34},{\"id\":\"sample-15\",\"label\":\"Period 16\",\"value\":35},{\"id\":\"sample-16\",\"label\":\"Period 17\",\"value\":36},{\"id\":\"sample-17\",\"label\":\"Period 18\",\"value\":37},{\"id\":\"sample-18\",\"label\":\"Period 19\",\"value\":38},{\"id\":\"sample-19\",\"label\":\"Period 20\",\"value\":39},{\"id\":\"sample-20\",\"label\":\"Period 21\",\"value\":40},{\"id\":\"sample-21\",\"label\":\"Period 22\",\"value\":41},{\"id\":\"sample-22\",\"label\":\"Period 23\",\"value\":42},{\"id\":\"sample-23\",\"label\":\"Period 24\",\"value\":43},{\"id\":\"sample-24\",\"label\":\"Period 25\",\"value\":44},{\"id\":\"sample-25\",\"label\":\"Period 26\",\"value\":45},{\"id\":\"sample-26\",\"label\":\"Period 27\",\"value\":46},{\"id\":\"sample-27\",\"label\":\"Period 28\",\"value\":47},{\"id\":\"sample-28\",\"label\":\"Period 29\",\"value\":48},{\"id\":\"sample-29\",\"label\":\"Period 30\",\"value\":49}]' ></box-bar-chart>"
+        },
+        {
+          "name": "Load error",
+          "html": "<box-bar-chart heading=\"Weekly uploads\" timeframe=\"Sep 28–Nov 1, 2026\" unit=\"Uploads\" x-label=\"Week of\" note=\"Illustrative data · Monday–Sunday intervals\"  points='[{\"id\":\"w1\",\"label\":\"Sep 28\",\"value\":42,\"inspection\":{\"label\":\"Week of Sep 28\",\"value\":\"42 uploads\"}},{\"id\":\"w2\",\"label\":\"Oct 5\",\"value\":51,\"inspection\":{\"label\":\"Week of Oct 5\",\"value\":\"51 uploads\",\"comparison\":\"+9 (+21.4%) vs Sep 28 · 42\"}},{\"id\":\"w3\",\"label\":\"Oct 12\",\"value\":48,\"inspection\":{\"label\":\"Week of Oct 12\",\"value\":\"48 uploads\",\"comparison\":\"−3 (−5.9%) vs Oct 5 · 51\"}},{\"id\":\"w4\",\"label\":\"Oct 19\",\"value\":64,\"inspection\":{\"label\":\"Week of Oct 19\",\"value\":\"64 uploads\",\"comparison\":\"+16 (+33.3%) vs Oct 12 · 48\"}},{\"id\":\"w5\",\"label\":\"Oct 26\",\"value\":71,\"inspection\":{\"label\":\"Latest week · Oct 26\",\"value\":\"71 uploads\",\"comparison\":\"+7 (+10.9%) vs Oct 19 · 64\"}}]' state=\"error\" status-message=\"Observations could not be loaded. Try again from the host application.\"></box-bar-chart>"
         }
       ]
     },
@@ -1920,8 +2007,55 @@
       "category": "Insights",
       "shortDescription": "A generic chart panel with summary, legend, and actions.",
       "docsDescription": "Pass JSON `points`, `legend`, and `actions`; use string attributes for title, summary, timeframe, and message.",
-      "sourceSnippet": "<box-chart-panel heading=\"Usage\" message=\"Weekly rollups across the enterprise.\" points='[{\"id\":\"mon\",\"label\":\"Mon\",\"value\":12}]'></box-chart-panel>",
+      "sourceSnippet": "<box-chart-panel heading=\"Daily uploads\" timeframe=\"Oct 26–30, 2026\" unit=\"Uploads\" x-label=\"Day\" note=\"Illustrative data\" points='[{\"id\":\"mon\",\"label\":\"Oct 26\",\"value\":12},{\"id\":\"tue\",\"label\":\"Oct 27\",\"value\":18},{\"id\":\"wed\",\"label\":\"Oct 28\",\"value\":24},{\"id\":\"thu\",\"label\":\"Oct 29\",\"value\":21},{\"id\":\"fri\",\"label\":\"Oct 30\",\"value\":28}]'></box-chart-panel>",
       "referenceRows": [
+        {
+          "kind": "attribute",
+          "name": "selected-id",
+          "type": "string",
+          "description": "Selected point ID. Clear selection returns inspection to the latest interval."
+        },
+        {
+          "kind": "attribute",
+          "name": "unit",
+          "type": "string",
+          "description": "Visible value-axis unit."
+        },
+        {
+          "kind": "attribute",
+          "name": "x-label",
+          "type": "string",
+          "description": "Category/interval axis label."
+        },
+        {
+          "kind": "property",
+          "name": "domain",
+          "type": "number[]",
+          "description": "Optional minimum/maximum bounds. Data is never silently clipped."
+        },
+        {
+          "kind": "attribute",
+          "name": "state",
+          "type": "string",
+          "description": "ready, loading, error, partial, or stale. Pass [] for no observations; null values preserve missing intervals."
+        },
+        {
+          "kind": "attribute",
+          "name": "status-message",
+          "type": "string",
+          "description": "Host-provided status, including an exact cache timestamp when stale."
+        },
+        {
+          "kind": "attribute",
+          "name": "note",
+          "type": "string",
+          "description": "Source, method, definition or coverage note."
+        },
+        {
+          "kind": "event",
+          "name": "selection-cleared",
+          "description": "Selection cleared; latest interval inspection restored."
+        },
         {
           "kind": "attribute",
           "name": "heading",
@@ -1978,7 +2112,23 @@
       "variants": [
         {
           "name": "Default",
-          "html": "<box-chart-panel heading=\"Usage\" summary=\"89%\" timeframe=\"Last 7 days\" message=\"Weekly rollups across the enterprise.\" points='[{\"id\":\"mon\",\"label\":\"Mon\",\"value\":12},{\"id\":\"tue\",\"label\":\"Tue\",\"value\":18},{\"id\":\"wed\",\"label\":\"Wed\",\"value\":24,\"tone\":\"accent\"}]' legend='[{\"label\":\"Usage\",\"tone\":\"brand\",\"value\":\"89%\"}]' actions='[{\"id\":\"open-report\",\"label\":\"Open report\",\"tone\":\"primary\"}]'></box-chart-panel>"
+          "html": "<box-chart-panel heading=\"Daily uploads\" timeframe=\"Oct 26–30, 2026\" unit=\"Uploads\" x-label=\"Day\" note=\"Illustrative data\" points='[{\"id\":\"mon\",\"label\":\"Oct 26\",\"value\":12},{\"id\":\"tue\",\"label\":\"Oct 27\",\"value\":18},{\"id\":\"wed\",\"label\":\"Oct 28\",\"value\":24},{\"id\":\"thu\",\"label\":\"Oct 29\",\"value\":21},{\"id\":\"fri\",\"label\":\"Oct 30\",\"value\":28}]'></box-chart-panel>"
+        },
+        {
+          "name": "Loading",
+          "html": "<box-chart-panel state=\"loading\" heading=\"Daily uploads\" timeframe=\"Oct 26–30, 2026\" unit=\"Uploads\" x-label=\"Day\" note=\"Illustrative data\" points='[{\"id\":\"mon\",\"label\":\"Oct 26\",\"value\":12},{\"id\":\"tue\",\"label\":\"Oct 27\",\"value\":18},{\"id\":\"wed\",\"label\":\"Oct 28\",\"value\":24},{\"id\":\"thu\",\"label\":\"Oct 29\",\"value\":21},{\"id\":\"fri\",\"label\":\"Oct 30\",\"value\":28}]'></box-chart-panel>"
+        },
+        {
+          "name": "Partial coverage",
+          "html": "<box-chart-panel state=\"partial\" status-message=\"Coverage is incomplete; comparisons are unavailable.\" heading=\"Daily uploads\" timeframe=\"Oct 26–30, 2026\" unit=\"Uploads\" x-label=\"Day\" note=\"Illustrative data\" points='[{\"id\":\"mon\",\"label\":\"Oct 26\",\"value\":12},{\"id\":\"tue\",\"label\":\"Oct 27\",\"value\":18},{\"id\":\"wed\",\"label\":\"Oct 28\",\"value\":24},{\"id\":\"thu\",\"label\":\"Oct 29\",\"value\":21},{\"id\":\"fri\",\"label\":\"Oct 30\",\"value\":28}]'></box-chart-panel>"
+        },
+        {
+          "name": "Cached observations",
+          "html": "<box-chart-panel state=\"stale\" status-message=\"Cached · updated Oct 29, 2026 at 09:00 UTC\" heading=\"Daily uploads\" timeframe=\"Oct 26–30, 2026\" unit=\"Uploads\" x-label=\"Day\" note=\"Illustrative data\" points='[{\"id\":\"mon\",\"label\":\"Oct 26\",\"value\":12},{\"id\":\"tue\",\"label\":\"Oct 27\",\"value\":18},{\"id\":\"wed\",\"label\":\"Oct 28\",\"value\":24},{\"id\":\"thu\",\"label\":\"Oct 29\",\"value\":21},{\"id\":\"fri\",\"label\":\"Oct 30\",\"value\":28}]'></box-chart-panel>"
+        },
+        {
+          "name": "Load error",
+          "html": "<box-chart-panel state=\"error\" status-message=\"Observations could not be loaded. Retry from the host application.\" heading=\"Daily uploads\" timeframe=\"Oct 26–30, 2026\" unit=\"Uploads\" x-label=\"Day\" note=\"Illustrative data\" points='[{\"id\":\"mon\",\"label\":\"Oct 26\",\"value\":12},{\"id\":\"tue\",\"label\":\"Oct 27\",\"value\":18},{\"id\":\"wed\",\"label\":\"Oct 28\",\"value\":24},{\"id\":\"thu\",\"label\":\"Oct 29\",\"value\":21},{\"id\":\"fri\",\"label\":\"Oct 30\",\"value\":28}]'></box-chart-panel>"
         }
       ]
     },
@@ -5288,8 +5438,56 @@
       "category": "Insights",
       "shortDescription": "A segmented donut chart for proportional summaries.",
       "docsDescription": "Pass JSON `segments` and `actions`; use string attributes for heading, summary, timeframe, and message.",
-      "sourceSnippet": "<box-donut-chart heading=\"Storage by type\" segments='[{\"id\":\"docs\",\"label\":\"Documents\",\"value\":46}]'></box-donut-chart>",
+      "sourceSnippet": "<box-donut-chart readonly category-label=\"File type\" heading=\"Storage by file type\" timeframe=\"As of Nov 1, 2026\" unit=\"GB\" total-label=\"Total stored\" note=\"Illustrative data · Part of total stored, not capacity\" segments='[{\"id\":\"docs\",\"label\":\"Documents\",\"value\":115},{\"id\":\"media\",\"label\":\"Media\",\"value\":80},{\"id\":\"other\",\"label\":\"Other\",\"value\":55}]'></box-donut-chart>",
       "referenceRows": [
+        {
+          "kind": "attribute",
+          "name": "category-label",
+          "type": "string",
+          "description": "Header for the category column, such as File type."
+        },
+        {
+          "kind": "attribute",
+          "name": "readonly",
+          "type": "boolean",
+          "description": "Static ring and semantic table without selection buttons; recommended for composition."
+        },
+        {
+          "kind": "attribute",
+          "name": "unit",
+          "type": "string",
+          "description": "Unit displayed with total and table value header."
+        },
+        {
+          "kind": "attribute",
+          "name": "total",
+          "type": "number",
+          "description": "Optional fixed denominator, including unclassified storage. Never less than classified sum."
+        },
+        {
+          "kind": "attribute",
+          "name": "total-label",
+          "type": "string",
+          "description": "Meaning of the center total."
+        },
+        {
+          "kind": "attribute",
+          "name": "note",
+          "type": "string",
+          "description": "Source, coverage and rounding caveats."
+        },
+        {
+          "kind": "attribute",
+          "name": "state",
+          "type": "string",
+          "description": "ready, loading, error, partial or stale."
+        },
+        {
+          "kind": "attribute",
+          "name": "status-message",
+          "type": "string",
+          "description": "Host status and cache timestamp."
+        },
         {
           "kind": "attribute",
           "name": "heading",
@@ -5340,7 +5538,23 @@
       "variants": [
         {
           "name": "Default",
-          "html": "<box-donut-chart heading=\"Storage by type\" summary=\"100%\" timeframe=\"Current\" message=\"Storage distribution by content category.\" segments='[{\"id\":\"docs\",\"label\":\"Documents\",\"value\":46},{\"id\":\"media\",\"label\":\"Media\",\"value\":32},{\"id\":\"other\",\"label\":\"Other\",\"value\":22}]' actions='[{\"id\":\"open-breakdown\",\"label\":\"Open breakdown\",\"tone\":\"primary\"}]'></box-donut-chart>"
+          "html": "<box-donut-chart readonly category-label=\"File type\" heading=\"Storage by file type\" timeframe=\"As of Nov 1, 2026\" unit=\"GB\" total-label=\"Total stored\" note=\"Illustrative data · Part of total stored, not capacity\" segments='[{\"id\":\"docs\",\"label\":\"Documents\",\"value\":115},{\"id\":\"media\",\"label\":\"Media\",\"value\":80},{\"id\":\"other\",\"label\":\"Other\",\"value\":55}]'></box-donut-chart>"
+        },
+        {
+          "name": "Loading",
+          "html": "<box-donut-chart state=\"loading\" readonly category-label=\"File type\" heading=\"Storage by file type\" timeframe=\"As of Nov 1, 2026\" unit=\"GB\" total-label=\"Total stored\" note=\"Illustrative data · Part of total stored, not capacity\" segments='[{\"id\":\"docs\",\"label\":\"Documents\",\"value\":115},{\"id\":\"media\",\"label\":\"Media\",\"value\":80},{\"id\":\"other\",\"label\":\"Other\",\"value\":55}]'></box-donut-chart>"
+        },
+        {
+          "name": "Partial coverage",
+          "html": "<box-donut-chart state=\"partial\" status-message=\"Coverage is incomplete; comparisons are unavailable.\" readonly category-label=\"File type\" heading=\"Storage by file type\" timeframe=\"As of Nov 1, 2026\" unit=\"GB\" total-label=\"Total stored\" note=\"Illustrative data · Part of total stored, not capacity\" segments='[{\"id\":\"docs\",\"label\":\"Documents\",\"value\":115},{\"id\":\"media\",\"label\":\"Media\",\"value\":80},{\"id\":\"other\",\"label\":\"Other\",\"value\":55}]'></box-donut-chart>"
+        },
+        {
+          "name": "Cached observations",
+          "html": "<box-donut-chart state=\"stale\" status-message=\"Cached · updated Oct 29, 2026 at 09:00 UTC\" readonly category-label=\"File type\" heading=\"Storage by file type\" timeframe=\"As of Nov 1, 2026\" unit=\"GB\" total-label=\"Total stored\" note=\"Illustrative data · Part of total stored, not capacity\" segments='[{\"id\":\"docs\",\"label\":\"Documents\",\"value\":115},{\"id\":\"media\",\"label\":\"Media\",\"value\":80},{\"id\":\"other\",\"label\":\"Other\",\"value\":55}]'></box-donut-chart>"
+        },
+        {
+          "name": "Load error",
+          "html": "<box-donut-chart state=\"error\" status-message=\"Observations could not be loaded. Retry from the host application.\" readonly category-label=\"File type\" heading=\"Storage by file type\" timeframe=\"As of Nov 1, 2026\" unit=\"GB\" total-label=\"Total stored\" note=\"Illustrative data · Part of total stored, not capacity\" segments='[{\"id\":\"docs\",\"label\":\"Documents\",\"value\":115},{\"id\":\"media\",\"label\":\"Media\",\"value\":80},{\"id\":\"other\",\"label\":\"Other\",\"value\":55}]'></box-donut-chart>"
         }
       ]
     },
@@ -5353,6 +5567,36 @@
       "docsDescription": "Provide host-computed summary rows. The box is Q1–Q3, its line is the median, and whiskers can use extremes or percentiles. Use the format property for custom value labels.",
       "sourceSnippet": "<box-box-plot heading=\"Step times\" unit=\"ms\" rows='[{\"id\":\"upload\",\"label\":\"files.upload\",\"min\":16,\"q1\":34,\"median\":42,\"q3\":55,\"max\":126}]'></box-box-plot>",
       "referenceRows": [
+        {
+          "kind": "attribute",
+          "name": "selectable",
+          "type": "boolean",
+          "description": "Enable explicit row selection and persistent details."
+        },
+        {
+          "kind": "attribute",
+          "name": "selected-id",
+          "type": "string",
+          "description": "Selected row ID."
+        },
+        {
+          "kind": "property",
+          "name": "domain",
+          "type": "number[]",
+          "description": "Optional containing minimum/maximum bounds for a shared linear domain."
+        },
+        {
+          "kind": "attribute",
+          "name": "state",
+          "type": "string",
+          "description": "ready, loading, error, partial or stale."
+        },
+        {
+          "kind": "attribute",
+          "name": "status-message",
+          "type": "string",
+          "description": "Host coverage/status and cache timestamp."
+        },
         {
           "kind": "attribute",
           "name": "heading",
@@ -6766,8 +7010,55 @@
       "category": "Insights",
       "shortDescription": "A trend chart for activity over time.",
       "docsDescription": "Pass JSON `points`, `legend`, and `actions`; use string attributes for heading, summary, timeframe, and message.",
-      "sourceSnippet": "<box-line-chart heading=\"Active users\" timeframe=\"Last 5 weeks\" points='[{\"id\":\"w1\",\"label\":\"W1\",\"value\":310}]'></box-line-chart>",
+      "sourceSnippet": "<box-line-chart heading=\"Weekly active users\" timeframe=\"Sep 28–Nov 1, 2026\" unit=\"Distinct users\" x-label=\"Week of\" note=\"Illustrative data · Monday–Sunday intervals · A user is counted once per week\" domain=\"[0,500]\" points='[{\"id\":\"w1\",\"label\":\"Sep 28\",\"value\":310,\"inspection\":{\"label\":\"Week of Sep 28\",\"value\":\"310 users\"}},{\"id\":\"w2\",\"label\":\"Oct 5\",\"value\":355,\"inspection\":{\"label\":\"Week of Oct 5\",\"value\":\"355 users\",\"comparison\":\"+45 (+14.5%) vs Sep 28 · 310\"}},{\"id\":\"w3\",\"label\":\"Oct 12\",\"value\":348,\"inspection\":{\"label\":\"Week of Oct 12\",\"value\":\"348 users\",\"comparison\":\"−7 (−2.0%) vs Oct 5 · 355\"}},{\"id\":\"w4\",\"label\":\"Oct 19\",\"value\":402,\"inspection\":{\"label\":\"Week of Oct 19\",\"value\":\"402 users\",\"comparison\":\"+54 (+15.5%) vs Oct 12 · 348\"}},{\"id\":\"w5\",\"label\":\"Oct 26\",\"value\":431,\"inspection\":{\"label\":\"Latest week · Oct 26\",\"value\":\"431 users\",\"comparison\":\"+29 (+7.2%) vs Oct 19 · 402\"}}]' ></box-line-chart>",
       "referenceRows": [
+        {
+          "kind": "attribute",
+          "name": "selected-id",
+          "type": "string",
+          "description": "Selected point ID. Clear selection returns inspection to the latest interval."
+        },
+        {
+          "kind": "attribute",
+          "name": "unit",
+          "type": "string",
+          "description": "Visible value-axis unit."
+        },
+        {
+          "kind": "attribute",
+          "name": "x-label",
+          "type": "string",
+          "description": "Category/interval axis label."
+        },
+        {
+          "kind": "property",
+          "name": "domain",
+          "type": "number[]",
+          "description": "Optional minimum/maximum bounds. Data is never silently clipped."
+        },
+        {
+          "kind": "attribute",
+          "name": "state",
+          "type": "string",
+          "description": "ready, loading, error, partial, or stale. Pass [] for no observations; null values preserve missing intervals."
+        },
+        {
+          "kind": "attribute",
+          "name": "status-message",
+          "type": "string",
+          "description": "Host-provided status, including an exact cache timestamp when stale."
+        },
+        {
+          "kind": "attribute",
+          "name": "note",
+          "type": "string",
+          "description": "Source, method, definition or coverage note."
+        },
+        {
+          "kind": "event",
+          "name": "selection-cleared",
+          "description": "Selection cleared; latest interval inspection restored."
+        },
         {
           "kind": "attribute",
           "name": "heading",
@@ -6778,7 +7069,7 @@
           "kind": "attribute",
           "name": "summary",
           "type": "string",
-          "description": "Headline value."
+          "description": "Optional host summary; no total is inferred for weekly users."
         },
         {
           "kind": "attribute",
@@ -6796,7 +7087,7 @@
           "kind": "attribute",
           "name": "points",
           "type": "json",
-          "description": "Line point data."
+          "description": "Ordered observations; null values make line gaps. Optional partial and host-authored inspection copy."
         },
         {
           "kind": "attribute",
@@ -6824,7 +7115,47 @@
       "variants": [
         {
           "name": "Default",
-          "html": "<box-line-chart heading=\"Active users\" summary=\"431 users\" timeframe=\"Last 5 weeks\" message=\"Weekly active users by reporting period.\" points='[{\"id\":\"w1\",\"label\":\"W1\",\"value\":310},{\"id\":\"w2\",\"label\":\"W2\",\"value\":355},{\"id\":\"w3\",\"label\":\"W3\",\"value\":348},{\"id\":\"w4\",\"label\":\"W4\",\"value\":402},{\"id\":\"w5\",\"label\":\"W5\",\"value\":431}]' legend='[{\"label\":\"Active users\",\"tone\":\"brand\",\"value\":\"431\"}]' actions='[{\"id\":\"open-report\",\"label\":\"Open report\",\"tone\":\"primary\"}]'></box-line-chart>"
+          "html": "<box-line-chart heading=\"Weekly active users\" timeframe=\"Sep 28–Nov 1, 2026\" unit=\"Distinct users\" x-label=\"Week of\" note=\"Illustrative data · Monday–Sunday intervals · A user is counted once per week\" domain=\"[0,500]\" points='[{\"id\":\"w1\",\"label\":\"Sep 28\",\"value\":310,\"inspection\":{\"label\":\"Week of Sep 28\",\"value\":\"310 users\"}},{\"id\":\"w2\",\"label\":\"Oct 5\",\"value\":355,\"inspection\":{\"label\":\"Week of Oct 5\",\"value\":\"355 users\",\"comparison\":\"+45 (+14.5%) vs Sep 28 · 310\"}},{\"id\":\"w3\",\"label\":\"Oct 12\",\"value\":348,\"inspection\":{\"label\":\"Week of Oct 12\",\"value\":\"348 users\",\"comparison\":\"−7 (−2.0%) vs Oct 5 · 355\"}},{\"id\":\"w4\",\"label\":\"Oct 19\",\"value\":402,\"inspection\":{\"label\":\"Week of Oct 19\",\"value\":\"402 users\",\"comparison\":\"+54 (+15.5%) vs Oct 12 · 348\"}},{\"id\":\"w5\",\"label\":\"Oct 26\",\"value\":431,\"inspection\":{\"label\":\"Latest week · Oct 26\",\"value\":\"431 users\",\"comparison\":\"+29 (+7.2%) vs Oct 19 · 402\"}}]' ></box-line-chart>"
+        },
+        {
+          "name": "Selected · Oct 19",
+          "html": "<box-line-chart heading=\"Weekly active users\" timeframe=\"Sep 28–Nov 1, 2026\" unit=\"Distinct users\" x-label=\"Week of\" note=\"Illustrative data · Monday–Sunday intervals · A user is counted once per week\" domain=\"[0,500]\" points='[{\"id\":\"w1\",\"label\":\"Sep 28\",\"value\":310,\"inspection\":{\"label\":\"Week of Sep 28\",\"value\":\"310 users\"}},{\"id\":\"w2\",\"label\":\"Oct 5\",\"value\":355,\"inspection\":{\"label\":\"Week of Oct 5\",\"value\":\"355 users\",\"comparison\":\"+45 (+14.5%) vs Sep 28 · 310\"}},{\"id\":\"w3\",\"label\":\"Oct 12\",\"value\":348,\"inspection\":{\"label\":\"Week of Oct 12\",\"value\":\"348 users\",\"comparison\":\"−7 (−2.0%) vs Oct 5 · 355\"}},{\"id\":\"w4\",\"label\":\"Oct 19\",\"value\":402,\"inspection\":{\"label\":\"Week of Oct 19\",\"value\":\"402 users\",\"comparison\":\"+54 (+15.5%) vs Oct 12 · 348\"}},{\"id\":\"w5\",\"label\":\"Oct 26\",\"value\":431,\"inspection\":{\"label\":\"Latest week · Oct 26\",\"value\":\"431 users\",\"comparison\":\"+29 (+7.2%) vs Oct 19 · 402\"}}]' selected-id=\"w4\"></box-line-chart>"
+        },
+        {
+          "name": "Zero measured",
+          "html": "<box-line-chart heading=\"Weekly active users\" timeframe=\"Sep 28–Nov 1, 2026\" unit=\"Distinct users\" x-label=\"Week of\" note=\"Illustrative data · Monday–Sunday intervals · A user is counted once per week\" domain=\"[0,500]\" points='[{\"id\":\"w1\",\"label\":\"Sep 28\",\"value\":0,\"inspection\":{\"label\":\"Week of Sep 28\",\"value\":\"0 users\"}},{\"id\":\"w2\",\"label\":\"Oct 5\",\"value\":0,\"inspection\":{\"label\":\"Week of Oct 5\",\"value\":\"0 users\"}},{\"id\":\"w3\",\"label\":\"Oct 12\",\"value\":0,\"inspection\":{\"label\":\"Week of Oct 12\",\"value\":\"0 users\"}},{\"id\":\"w4\",\"label\":\"Oct 19\",\"value\":0,\"inspection\":{\"label\":\"Week of Oct 19\",\"value\":\"0 users\"}},{\"id\":\"w5\",\"label\":\"Oct 26\",\"value\":0,\"inspection\":{\"label\":\"Latest week · Oct 26\",\"value\":\"0 users\"}}]' ></box-line-chart>"
+        },
+        {
+          "name": "No observations",
+          "html": "<box-line-chart heading=\"Weekly active users\" timeframe=\"Sep 28–Nov 1, 2026\" unit=\"Distinct users\" x-label=\"Week of\" note=\"Illustrative data · Monday–Sunday intervals · A user is counted once per week\" domain=\"[0,500]\" points='[]' ></box-line-chart>"
+        },
+        {
+          "name": "Incomplete period",
+          "html": "<box-line-chart heading=\"Weekly active users\" timeframe=\"Sep 28–Nov 1, 2026\" unit=\"Distinct users\" x-label=\"Week of\" note=\"Illustrative data · Monday–Sunday intervals · A user is counted once per week\" domain=\"[0,500]\" points='[{\"id\":\"w1\",\"label\":\"Sep 28\",\"value\":310,\"inspection\":{\"label\":\"Week of Sep 28\",\"value\":\"310 users\"}},{\"id\":\"w2\",\"label\":\"Oct 5\",\"value\":355,\"inspection\":{\"label\":\"Week of Oct 5\",\"value\":\"355 users\",\"comparison\":\"+45 (+14.5%) vs Sep 28 · 310\"}},{\"id\":\"w3\",\"label\":\"Oct 12\",\"value\":348,\"inspection\":{\"label\":\"Week of Oct 12\",\"value\":\"348 users\",\"comparison\":\"−7 (−2.0%) vs Oct 5 · 355\"}},{\"id\":\"w4\",\"label\":\"Oct 19\",\"value\":402,\"inspection\":{\"label\":\"Week of Oct 19\",\"value\":\"402 users\",\"comparison\":\"+54 (+15.5%) vs Oct 12 · 348\"}},{\"id\":\"w5\",\"label\":\"Oct 26\",\"value\":431,\"inspection\":{\"label\":\"Latest week · Oct 26\",\"value\":\"431 users\",\"comparison\":\"+29 (+7.2%) vs Oct 19 · 402\"}}]' state=\"partial\" status-message=\"Oct 26–Nov 1 is incomplete. Comparisons are unavailable.\"></box-line-chart>"
+        },
+        {
+          "name": "Missing interval",
+          "html": "<box-line-chart heading=\"Weekly active users\" timeframe=\"Sep 28–Nov 1, 2026\" unit=\"Distinct users\" x-label=\"Week of\" note=\"Illustrative data · Monday–Sunday intervals · A user is counted once per week\" domain=\"[0,500]\" points='[{\"id\":\"w1\",\"label\":\"Sep 28\",\"value\":310,\"inspection\":{\"label\":\"Week of Sep 28\",\"value\":\"310 users\"}},{\"id\":\"w2\",\"label\":\"Oct 5\",\"value\":355,\"inspection\":{\"label\":\"Week of Oct 5\",\"value\":\"355 users\",\"comparison\":\"+45 (+14.5%) vs Sep 28 · 310\"}},{\"id\":\"w3\",\"label\":\"Oct 12\",\"value\":null,\"inspection\":{\"label\":\"Week of Oct 12\",\"value\":\"Not observed\"}},{\"id\":\"w4\",\"label\":\"Oct 19\",\"value\":402,\"inspection\":{\"label\":\"Week of Oct 19\",\"value\":\"402 users\"}},{\"id\":\"w5\",\"label\":\"Oct 26\",\"value\":431,\"inspection\":{\"label\":\"Latest week · Oct 26\",\"value\":\"431 users\",\"comparison\":\"+29 (+7.2%) vs Oct 19 · 402\"}}]' ></box-line-chart>"
+        },
+        {
+          "name": "Cached observations",
+          "html": "<box-line-chart heading=\"Weekly active users\" timeframe=\"Sep 28–Nov 1, 2026\" unit=\"Distinct users\" x-label=\"Week of\" note=\"Illustrative data · Monday–Sunday intervals · A user is counted once per week\" domain=\"[0,500]\" points='[{\"id\":\"w1\",\"label\":\"Sep 28\",\"value\":310,\"inspection\":{\"label\":\"Week of Sep 28\",\"value\":\"310 users\"}},{\"id\":\"w2\",\"label\":\"Oct 5\",\"value\":355,\"inspection\":{\"label\":\"Week of Oct 5\",\"value\":\"355 users\",\"comparison\":\"+45 (+14.5%) vs Sep 28 · 310\"}},{\"id\":\"w3\",\"label\":\"Oct 12\",\"value\":348,\"inspection\":{\"label\":\"Week of Oct 12\",\"value\":\"348 users\",\"comparison\":\"−7 (−2.0%) vs Oct 5 · 355\"}},{\"id\":\"w4\",\"label\":\"Oct 19\",\"value\":402,\"inspection\":{\"label\":\"Week of Oct 19\",\"value\":\"402 users\",\"comparison\":\"+54 (+15.5%) vs Oct 12 · 348\"}},{\"id\":\"w5\",\"label\":\"Oct 26\",\"value\":431,\"inspection\":{\"label\":\"Latest week · Oct 26\",\"value\":\"431 users\",\"comparison\":\"+29 (+7.2%) vs Oct 19 · 402\"}}]' state=\"stale\" status-message=\"Cached · updated Oct 29, 2026 at 09:00 UTC\"></box-line-chart>"
+        },
+        {
+          "name": "Loading",
+          "html": "<box-line-chart heading=\"Weekly active users\" timeframe=\"Sep 28–Nov 1, 2026\" unit=\"Distinct users\" x-label=\"Week of\" note=\"Illustrative data · Monday–Sunday intervals · A user is counted once per week\" domain=\"[0,500]\" points='[{\"id\":\"w1\",\"label\":\"Sep 28\",\"value\":310,\"inspection\":{\"label\":\"Week of Sep 28\",\"value\":\"310 users\"}},{\"id\":\"w2\",\"label\":\"Oct 5\",\"value\":355,\"inspection\":{\"label\":\"Week of Oct 5\",\"value\":\"355 users\",\"comparison\":\"+45 (+14.5%) vs Sep 28 · 310\"}},{\"id\":\"w3\",\"label\":\"Oct 12\",\"value\":348,\"inspection\":{\"label\":\"Week of Oct 12\",\"value\":\"348 users\",\"comparison\":\"−7 (−2.0%) vs Oct 5 · 355\"}},{\"id\":\"w4\",\"label\":\"Oct 19\",\"value\":402,\"inspection\":{\"label\":\"Week of Oct 19\",\"value\":\"402 users\",\"comparison\":\"+54 (+15.5%) vs Oct 12 · 348\"}},{\"id\":\"w5\",\"label\":\"Oct 26\",\"value\":431,\"inspection\":{\"label\":\"Latest week · Oct 26\",\"value\":\"431 users\",\"comparison\":\"+29 (+7.2%) vs Oct 19 · 402\"}}]' state=\"loading\"></box-line-chart>"
+        },
+        {
+          "name": "Long category labels",
+          "html": "<box-line-chart heading=\"Weekly active users\" timeframe=\"Sep 28–Nov 1, 2026\" unit=\"Distinct users\" x-label=\"Week of\" note=\"Illustrative data · Monday–Sunday intervals · A user is counted once per week\" domain=\"[0,500]\" points='[{\"id\":\"w1\",\"label\":\"Week beginning Sep 28, 2026 — extended category label\",\"value\":310,\"inspection\":{\"label\":\"Week of Sep 28\",\"value\":\"310 users\"}},{\"id\":\"w2\",\"label\":\"Week beginning Oct 5, 2026 — extended category label\",\"value\":355,\"inspection\":{\"label\":\"Week of Oct 5\",\"value\":\"355 users\",\"comparison\":\"+45 (+14.5%) vs Sep 28 · 310\"}},{\"id\":\"w3\",\"label\":\"Week beginning Oct 12, 2026 — extended category label\",\"value\":348,\"inspection\":{\"label\":\"Week of Oct 12\",\"value\":\"348 users\",\"comparison\":\"−7 (−2.0%) vs Oct 5 · 355\"}},{\"id\":\"w4\",\"label\":\"Week beginning Oct 19, 2026 — extended category label\",\"value\":402,\"inspection\":{\"label\":\"Week of Oct 19\",\"value\":\"402 users\",\"comparison\":\"+54 (+15.5%) vs Oct 12 · 348\"}},{\"id\":\"w5\",\"label\":\"Week beginning Oct 26, 2026 — extended category label\",\"value\":431,\"inspection\":{\"label\":\"Latest week · Oct 26\",\"value\":\"431 users\",\"comparison\":\"+29 (+7.2%) vs Oct 19 · 402\"}}]' ></box-line-chart>"
+        },
+        {
+          "name": "Dense observations",
+          "html": "<box-line-chart heading=\"Weekly active users\" timeframe=\"Sep 28–Nov 1, 2026\" unit=\"Distinct users\" x-label=\"Week of\" note=\"Illustrative data · Monday–Sunday intervals · A user is counted once per week\" domain=\"[0,500]\" points='[{\"id\":\"sample-0\",\"label\":\"Period 1\",\"value\":200},{\"id\":\"sample-1\",\"label\":\"Period 2\",\"value\":207},{\"id\":\"sample-2\",\"label\":\"Period 3\",\"value\":214},{\"id\":\"sample-3\",\"label\":\"Period 4\",\"value\":221},{\"id\":\"sample-4\",\"label\":\"Period 5\",\"value\":228},{\"id\":\"sample-5\",\"label\":\"Period 6\",\"value\":235},{\"id\":\"sample-6\",\"label\":\"Period 7\",\"value\":242},{\"id\":\"sample-7\",\"label\":\"Period 8\",\"value\":249},{\"id\":\"sample-8\",\"label\":\"Period 9\",\"value\":256},{\"id\":\"sample-9\",\"label\":\"Period 10\",\"value\":263},{\"id\":\"sample-10\",\"label\":\"Period 11\",\"value\":270},{\"id\":\"sample-11\",\"label\":\"Period 12\",\"value\":277},{\"id\":\"sample-12\",\"label\":\"Period 13\",\"value\":284},{\"id\":\"sample-13\",\"label\":\"Period 14\",\"value\":291},{\"id\":\"sample-14\",\"label\":\"Period 15\",\"value\":298},{\"id\":\"sample-15\",\"label\":\"Period 16\",\"value\":305},{\"id\":\"sample-16\",\"label\":\"Period 17\",\"value\":312},{\"id\":\"sample-17\",\"label\":\"Period 18\",\"value\":319},{\"id\":\"sample-18\",\"label\":\"Period 19\",\"value\":326},{\"id\":\"sample-19\",\"label\":\"Period 20\",\"value\":333},{\"id\":\"sample-20\",\"label\":\"Period 21\",\"value\":340},{\"id\":\"sample-21\",\"label\":\"Period 22\",\"value\":347},{\"id\":\"sample-22\",\"label\":\"Period 23\",\"value\":354},{\"id\":\"sample-23\",\"label\":\"Period 24\",\"value\":361},{\"id\":\"sample-24\",\"label\":\"Period 25\",\"value\":368},{\"id\":\"sample-25\",\"label\":\"Period 26\",\"value\":375},{\"id\":\"sample-26\",\"label\":\"Period 27\",\"value\":382},{\"id\":\"sample-27\",\"label\":\"Period 28\",\"value\":389},{\"id\":\"sample-28\",\"label\":\"Period 29\",\"value\":396},{\"id\":\"sample-29\",\"label\":\"Period 30\",\"value\":403}]' ></box-line-chart>"
+        },
+        {
+          "name": "Load error",
+          "html": "<box-line-chart heading=\"Weekly active users\" timeframe=\"Sep 28–Nov 1, 2026\" unit=\"Distinct users\" x-label=\"Week of\" note=\"Illustrative data · Monday–Sunday intervals · A user is counted once per week\" domain=\"[0,500]\" points='[{\"id\":\"w1\",\"label\":\"Sep 28\",\"value\":310,\"inspection\":{\"label\":\"Week of Sep 28\",\"value\":\"310 users\"}},{\"id\":\"w2\",\"label\":\"Oct 5\",\"value\":355,\"inspection\":{\"label\":\"Week of Oct 5\",\"value\":\"355 users\",\"comparison\":\"+45 (+14.5%) vs Sep 28 · 310\"}},{\"id\":\"w3\",\"label\":\"Oct 12\",\"value\":348,\"inspection\":{\"label\":\"Week of Oct 12\",\"value\":\"348 users\",\"comparison\":\"−7 (−2.0%) vs Oct 5 · 355\"}},{\"id\":\"w4\",\"label\":\"Oct 19\",\"value\":402,\"inspection\":{\"label\":\"Week of Oct 19\",\"value\":\"402 users\",\"comparison\":\"+54 (+15.5%) vs Oct 12 · 348\"}},{\"id\":\"w5\",\"label\":\"Oct 26\",\"value\":431,\"inspection\":{\"label\":\"Latest week · Oct 26\",\"value\":\"431 users\",\"comparison\":\"+29 (+7.2%) vs Oct 19 · 402\"}}]' state=\"error\" status-message=\"Observations could not be loaded. Try again from the host application.\"></box-line-chart>"
         }
       ]
     },
@@ -7079,8 +7410,20 @@
       "category": "Insights",
       "shortDescription": "A KPI card with optional trend.",
       "docsDescription": "Surface a headline metric; pass optional JSON `trend` for delta tone/label. Cards stretch within grid and flex rows. Use `size=compact` for summary figures and `tone` to color the value independently of a status chip.",
-      "sourceSnippet": "<box-metric-card heading=\"Active shared links\" value=\"1,284\" eyebrow=\"Last 30 days\" status=\"Healthy\" trend='{\"label\":\"+16.5%\",\"tone\":\"success\"}'></box-metric-card>",
+      "sourceSnippet": "<box-metric-card heading=\"Active shared links\" value=\"1,284\" eyebrow=\"As of Oct 29, 2026\" message=\"Active = not expired or revoked. Illustrative definition.\" trend='{\"label\":\"+182 (+16.5%) vs Sep 29 · 1,102\",\"tone\":\"neutral\",\"direction\":\"up\"}'></box-metric-card>",
       "referenceRows": [
+        {
+          "kind": "attribute",
+          "name": "state",
+          "type": "string",
+          "description": "ready, loading, error, partial or stale."
+        },
+        {
+          "kind": "attribute",
+          "name": "status-message",
+          "type": "string",
+          "description": "Host-provided state and cache timestamp."
+        },
         {
           "kind": "attribute",
           "name": "heading",
@@ -7133,11 +7476,11 @@
       "variants": [
         {
           "name": "Compact summary row",
-          "html": "<div style=\"display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px\"><box-metric-card size=\"compact\" heading=\"Times through the steps a second, on average\" value=\"84\"></box-metric-card><box-metric-card size=\"compact\" heading=\"Box calls\" value=\"142\" tone=\"success\"></box-metric-card><box-metric-card size=\"compact\" heading=\"Failed calls\" value=\"3\" tone=\"error\"></box-metric-card></div>"
+          "html": "<div style=\"display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px\"><box-metric-card size=\"compact\" heading=\"Times through the steps a second, on average\" value=\"84\"></box-metric-card><box-metric-card size=\"compact\" heading=\"Box calls\" value=\"142\"></box-metric-card><box-metric-card size=\"compact\" heading=\"Failed calls\" value=\"3\" tone=\"error\"></box-metric-card></div>"
         },
         {
           "name": "Default",
-          "html": "<box-metric-card heading=\"Active shared links\" value=\"1,284\" eyebrow=\"Last 30 days\" message=\"Up from 1,102 in the prior period.\" status=\"Healthy\" trend='{\"label\":\"+16.5%\",\"tone\":\"success\"}'></box-metric-card>"
+          "html": "<box-metric-card heading=\"Active shared links\" value=\"1,284\" eyebrow=\"As of Oct 29, 2026\" message=\"Active = not expired or revoked. Illustrative definition.\" trend='{\"label\":\"+182 (+16.5%) vs Sep 29 · 1,102\",\"tone\":\"neutral\"}'></box-metric-card>"
         }
       ]
     },

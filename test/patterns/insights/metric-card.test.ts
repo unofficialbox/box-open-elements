@@ -114,3 +114,18 @@ describe("MetricCard summary options", () => {
     expect(element.size).toBe("default");
   });
 });
+
+
+it("preserves metric health beside a persistent live data-state message",()=>{
+  const card=new MetricCard();document.body.append(card);const root=card.shadowRoot!;
+  const live=root.querySelector('[part="data-status"]')!;
+  expect(live.getAttribute("role")).toBe("status");expect(live.textContent).toBe("");
+  card.status="Needs attention";
+  for(const state of ["loading","error","partial","stale"]){
+    card.state=state;expect(root.querySelector('[part="data-status"]')).toBe(live);
+    expect(live.textContent).not.toBe("");expect(live.closest('[aria-busy="true"]')).toBeNull();
+    expect(root.querySelector('[part="status"]')!.textContent).toBe("Needs attention");
+  }
+  card.state="ready";expect(live.textContent).toBe("");
+  card.statusMessage="Cached at 09:00";expect(live.textContent).toBe("Cached at 09:00");card.remove();
+});

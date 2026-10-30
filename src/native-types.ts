@@ -22,8 +22,8 @@ export interface BoxElementPropertyKeys {
   "box-avatar": "alt" | "badge" | "initials" | "name" | "size" | "src" | "tone";
   "box-badge": "hideWhenZero" | "label" | "max" | "tone";
   "box-badgeable": never;
-  "box-bar-chart": "actions" | "heading" | "legend" | "message" | "points" | "summary" | "timeframe";
-  "box-box-plot": "description" | "embedded" | "format" | "heading" | "headingLevel" | "hideNote" | "orientation" | "rows" | "scale" | "unit" | "whiskers";
+  "box-bar-chart": "actions" | "domain" | "heading" | "legend" | "message" | "note" | "points" | "selectedId" | "state" | "statusMessage" | "summary" | "timeframe" | "unit" | "xLabel";
+  "box-box-plot": "description" | "domain" | "embedded" | "format" | "heading" | "headingLevel" | "hideNote" | "orientation" | "rows" | "scale" | "selectable" | "selectedId" | "state" | "statusMessage" | "unit" | "whiskers";
   "box-breadcrumb": "items" | "label" | "maxItems";
   "box-bulk-action-bar": "actions" | "clearLabel" | "count" | "items" | "label" | "message";
   "box-button": "accessibleLabel" | "disabled" | "isLoading" | "label" | "size" | "tone" | "type";
@@ -33,7 +33,7 @@ export interface BoxElementPropertyKeys {
   "box-card": "eyebrow" | "heading";
   "box-carousel": "items" | "label" | "value";
   "box-category-selector": "label" | "maxLinks" | "options" | "value";
-  "box-chart-panel": "actions" | "heading" | "legend" | "message" | "points" | "summary" | "timeframe";
+  "box-chart-panel": "actions" | "domain" | "heading" | "legend" | "message" | "note" | "points" | "selectedId" | "state" | "statusMessage" | "summary" | "timeframe" | "unit" | "xLabel";
   "box-check-list": "blocks" | "labels" | "rows" | "selectableDocuments";
   "box-checkbox": "checked" | "description" | "disabled" | "errorMessage" | "hideLabel" | "indeterminate" | "invalid" | "label" | "name" | "required" | "value";
   "box-checkbox-group": "description" | "disabled" | "errorMessage" | "hideLabel" | "invalid" | "label" | "name" | "options" | "required" | "value";
@@ -59,7 +59,7 @@ export interface BoxElementPropertyKeys {
   "box-distribution-timeline": "description" | "embedded" | "format" | "heading" | "headingLevel" | "hideNote" | "hideSamples" | "maxSamples" | "points" | "scale" | "timeUnit" | "unit";
   "box-divider": "label" | "orientation";
   "box-document-list": "blocks" | "items" | "labels" | "selectableDocuments";
-  "box-donut-chart": "actions" | "heading" | "message" | "segments" | "summary" | "timeframe";
+  "box-donut-chart": "actions" | "categoryLabel" | "heading" | "message" | "note" | "readOnly" | "segments" | "state" | "statusMessage" | "summary" | "timeframe" | "total" | "totalLabel" | "unit";
   "box-draggable-list": "items" | "label";
   "box-drawer": "busy" | "description" | "heading" | "hideCloseButton" | "open" | "position" | "size";
   "box-drop-zone": "accept" | "browseLabel" | "description" | "directories" | "folderLabel" | "label" | "message" | "variant";
@@ -101,14 +101,14 @@ export interface BoxElementPropertyKeys {
   "box-item-details-panel": "actions" | "eyebrow" | "heading" | "message" | "meta" | "owner" | "status";
   "box-item-form": "disabled" | "fields" | "label" | "mode" | "submitLabel" | "value";
   "box-kind-picker": "catalog" | "searchable" | "variant";
-  "box-line-chart": "actions" | "heading" | "legend" | "message" | "points" | "summary" | "timeframe";
+  "box-line-chart": "actions" | "domain" | "heading" | "legend" | "message" | "note" | "points" | "selectedId" | "state" | "statusMessage" | "summary" | "timeframe" | "unit" | "xLabel";
   "box-lineage-graph": "arrows" | "heading" | "nodes";
   "box-link-button": "href" | "label" | "rel" | "target" | "tone";
   "box-menu": "disabled" | "items" | "label";
   "box-menu-item": "disabled" | "label" | "selected" | "value";
   "box-metadata-filter-builder": "fields" | "label" | "rules";
   "box-metadata-inspector": "eyebrow" | "heading" | "message" | "sections";
-  "box-metric-card": "action" | "eyebrow" | "heading" | "message" | "size" | "status" | "tone" | "trend" | "value";
+  "box-metric-card": "action" | "eyebrow" | "heading" | "message" | "size" | "state" | "status" | "statusMessage" | "tone" | "trend" | "value";
   "box-mode-indicator": "detail" | "interactive" | "mode" | "namePrefix";
   "box-multi-select": "description" | "errorMessage" | "hideLabel" | "invalid" | "label" | "name" | "options" | "required" | "value";
   "box-nav-sidebar": "collapsed" | "label";
@@ -236,9 +236,13 @@ export interface BoxElementEventMap {
   "box-badgeable": {};
   "box-bar-chart": {
     "action": CustomEvent<{ action: string; }>;
-    "point-selected": CustomEvent<{ id: string; label: string; tone?: string | undefined; value: number; }>;
+    "point-selected": CustomEvent<{ id: string; label: string; tone?: string | undefined; value: number | null; partial?: boolean | undefined; inspection?: import("./patterns/insights/chart-presentation.js").ChartInspection | undefined; }>;
+    "selection-cleared": CustomEvent<{ selectedId: null; }>;
   };
-  "box-box-plot": {};
+  "box-box-plot": {
+    "row-selected": CustomEvent<{ id: string; }>;
+    "selection-cleared": CustomEvent<{ selectedId: null; }>;
+  };
   "box-breadcrumb": {
     "navigate": CustomEvent<{ value: string; href: string | undefined; }>;
   };
@@ -269,7 +273,8 @@ export interface BoxElementEventMap {
   };
   "box-chart-panel": {
     "action": CustomEvent<{ action: string; }>;
-    "point-selected": CustomEvent<{ id: string; label: string; tone?: string | undefined; value: number; }>;
+    "point-selected": CustomEvent<{ id: string; label: string; tone?: string | undefined; value: number | null; partial?: boolean | undefined; inspection?: import("./patterns/insights/chart-presentation.js").ChartInspection | undefined; }>;
+    "selection-cleared": CustomEvent<{ selectedId: null; }>;
   };
   "box-check-list": {
     "document-selected": CustomEvent<{ id: string | undefined; }>;
@@ -461,7 +466,8 @@ export interface BoxElementEventMap {
   "box-kind-picker": {};
   "box-line-chart": {
     "action": CustomEvent<{ action: string; }>;
-    "point-selected": CustomEvent<{ id: string; label: string; tone?: string | undefined; value: number; }>;
+    "point-selected": CustomEvent<{ id: string; label: string; tone?: string | undefined; value: number | null; partial?: boolean | undefined; inspection?: import("./patterns/insights/chart-presentation.js").ChartInspection | undefined; }>;
+    "selection-cleared": CustomEvent<{ selectedId: null; }>;
   };
   "box-lineage-graph": {
     "edge-selected": CustomEvent<{ note?: string | undefined; parent: import("./patterns/lineage/types.js").LineageNode; child: import("./patterns/lineage/types.js").LineageNode; deviation: import("./patterns/lineage/types.js").LineageDeviation; }>;
@@ -1065,6 +1071,41 @@ declare module "./patterns/insights/bar-chart.js" {
     removeEventListener<K extends keyof HTMLElementEventMap>(
       type: K,
       listener: (this: BarChart, event: HTMLElementEventMap[K]) => void,
+      options?: boolean | EventListenerOptions,
+    ): void;
+    removeEventListener(
+      type: string,
+      listener: EventListenerOrEventListenerObject | null,
+      options?: boolean | EventListenerOptions,
+    ): void;
+  }
+}
+
+declare module "./patterns/insights/box-plot.js" {
+  interface BoxPlot {
+    addEventListener<K extends keyof BoxElementEventMap["box-box-plot"] & string>(
+      type: K,
+      listener: (this: BoxPlot, event: BoxElementEventMap["box-box-plot"][K]) => void,
+      options?: boolean | AddEventListenerOptions,
+    ): void;
+    addEventListener<K extends keyof HTMLElementEventMap>(
+      type: K,
+      listener: (this: BoxPlot, event: HTMLElementEventMap[K]) => void,
+      options?: boolean | AddEventListenerOptions,
+    ): void;
+    addEventListener(
+      type: string,
+      listener: EventListenerOrEventListenerObject | null,
+      options?: boolean | AddEventListenerOptions,
+    ): void;
+    removeEventListener<K extends keyof BoxElementEventMap["box-box-plot"] & string>(
+      type: K,
+      listener: (this: BoxPlot, event: BoxElementEventMap["box-box-plot"][K]) => void,
+      options?: boolean | EventListenerOptions,
+    ): void;
+    removeEventListener<K extends keyof HTMLElementEventMap>(
+      type: K,
+      listener: (this: BoxPlot, event: HTMLElementEventMap[K]) => void,
       options?: boolean | EventListenerOptions,
     ): void;
     removeEventListener(

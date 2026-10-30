@@ -141,11 +141,11 @@
 <section id="section-insights">
   <h2>Patterns · Insights Compositions</h2>
   <div class="row">
-    <box-metric-card id="metric-card" heading="Active shared links" value="1,284" eyebrow="Last 30 days" message="Up from 1,102 in the prior period." status="Healthy"></box-metric-card>
-    <box-donut-chart id="donut-chart" heading="Storage by file type" summary="100 GB" message="Storage in GB · example data"></box-donut-chart>
+    <box-metric-card id="metric-card" heading="Active shared links" value="1,284" eyebrow="As of Oct 29, 2026" message="Active = not expired or revoked. Illustrative definition."></box-metric-card>
+    <box-donut-chart id="donut-chart" readonly heading="Storage by file type" unit="GB" total-label="Total stored" note="Illustrative data · Part of total stored, not capacity"></box-donut-chart>
   </div>
   <div class="row">
-    <box-bar-chart id="bar-chart" heading="Uploads per week" timeframe="Last 5 weeks" summary="276 uploads" message="Files uploaded each week · example data"></box-bar-chart>
+    <box-bar-chart id="bar-chart" heading="Weekly uploads" timeframe="Sep 28–Nov 1, 2026" unit="Uploads" x-label="Week of" note="Illustrative data"></box-bar-chart>
   </div>
 </section>
 
@@ -498,20 +498,20 @@
   await controller.connect();
   controller.toggleSelection("123");
 
-  byId("metric-card").trend = { label: "+16.5%", tone: "success" };
+  byId("metric-card").trend = { label: "+182 (+16.5%) vs Sep 29 · 1,102", tone: "neutral" };
   byId("donut-chart").segments = [
-    { id: "docs", label: "Documents", value: 46 },
-    { id: "media", label: "Media", value: 32 },
-    { id: "other", label: "Other", value: 22 },
+    { id: "docs", label: "Documents", value: 115 },
+    { id: "media", label: "Media", value: 80 },
+    { id: "other", label: "Other", value: 55 },
   ];
   byId("bar-chart").points = [
-    { id: "w1", label: "W1", value: 42 },
-    { id: "w2", label: "W2", value: 51 },
-    { id: "w3", label: "W3", value: 48 },
-    { id: "w4", label: "W4", value: 64 },
-    { id: "w5", label: "W5", value: 71 },
+    { id: "w1", label: "Sep 28", value: 42 },
+    { id: "w2", label: "Oct 5", value: 51 },
+    { id: "w3", label: "Oct 12", value: 48 },
+    { id: "w4", label: "Oct 19", value: 64 },
+    { id: "w5", label: "Oct 26", value: 71 },
   ];
-  byId("bar-chart").legend = [{ label: "Uploads", tone: "brand" }];
+
   byId("share-panel").sharedLink = {
     url: "https://box.com/s/example",
     access: "company",

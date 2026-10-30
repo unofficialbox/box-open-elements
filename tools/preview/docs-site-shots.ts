@@ -403,6 +403,15 @@ try {
   await verifyBoxPlotAxe("table mobile light");
   await page.locator('box-box-plot [part="table-toggle"]').click();
   const verifyBoxPlotTooltips = async (label: string): Promise<void> => {
+    if (await page.locator("box-box-plot").evaluate(element=>element.hasAttribute("selectable"))) {
+      const marks = page.locator('box-box-plot [part="mark"]');
+      for (let index=0;index<await marks.count();index++) {
+        await marks.nth(index).press("Enter");
+        if (!await page.locator('box-box-plot [part="selection"]').isVisible()) throw new Error("Distribution keyboard selection has no persistent detail");
+      }
+      await page.locator('box-box-plot [part="clear-selection"]').click();
+      return;
+    }
     const marks = page.locator('box-box-plot [part="mark"]');
     for (let index = 0; index < await marks.count(); index += 1) {
       const mark = marks.nth(index);
@@ -571,6 +580,11 @@ try {
             await page.getByRole("button", { name: "Full", exact: true }).click();
           }
         }
+        if (id === "donut-chart") {
+          if (await chart.locator("tbody tr").count() !== 3 || await chart.locator('[part="legend-item"]').count()) throw new Error("Static donut must expose its exact values in a table");
+          // Retain coverage for the compatible interactive mode as well.
+          await chart.evaluate(element => element.removeAttribute("readonly"));
+        }
         if (["bar-chart", "chart-panel", "line-chart", "donut-chart"].includes(id)) {
           const control = chart.locator(id === "donut-chart" ? '[part="legend-item"]' : '[part="point"]').first();
           await control.focus();
@@ -594,6 +608,7 @@ try {
             await control.press("Tab");
             if (!await chart.locator('[part="segment"][data-muted="true"]').count()) throw new Error("Donut lost keyboard focus emphasis");
           }
+          if (id === "donut-chart") await chart.evaluate(element=>element.setAttribute("readonly",""));
           if (Number(await page.locator("#event-count").textContent()) < 1) throw new Error(`${id} did not emit a keyboard event`);
         }
 
