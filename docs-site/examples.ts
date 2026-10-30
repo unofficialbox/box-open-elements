@@ -1,4 +1,4 @@
-import {distributionTimelineHtml,distributionTimelineSamplesHtml,distributionTimelineLogHtml} from "../storybook/fixtures/distribution-timeline.js";
+import {distributionTimelineHtml,distributionTimelineSamplesHtml,distributionTimelineLogHtml,distributionTimelineSelectableHtml,distributionTimelinePartialHtml,distributionTimelineErrorHtml} from "../storybook/fixtures/distribution-timeline.js";
 import {stackedBarsHtml, rangesHtml, numericLineHtml, findingsHtml} from "../storybook/fixtures/analytic-charts.js";
 import { periodChartHtml, periodVariants, metricChartHtml, storageChartHtml, dailyChartHtml, distributionChartHtml, dataStateVariants } from "../storybook/fixtures/insights.js";
 /**
@@ -1866,6 +1866,6 @@ diff.nodes = ${JSON.stringify(folderDiffDemo, null, 2)};`,
   },
   "distribution-timeline": {
     html:distributionTimelineHtml,
-    variants:[{name:"Interval summaries",html:distributionTimelineHtml},{name:"With sampled values",html:distributionTimelineSamplesHtml},{name:"Log scale",html:distributionTimelineLogHtml}],
+    variants:[{name:"Interval summaries",html:distributionTimelineHtml},{name:"With sampled values",html:distributionTimelineSamplesHtml},{name:"Log scale",html:distributionTimelineLogHtml},{name:"Inspect intervals",html:distributionTimelineSelectableHtml},{name:"Partial coverage",html:distributionTimelinePartialHtml},{name:"Load error",html:distributionTimelineErrorHtml}],
   },
 };

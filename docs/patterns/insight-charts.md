@@ -10,8 +10,8 @@ the same values, markup, and variant.
 The shared bar/line/chart-panel shell presents title and scope, optional inspection,
 evidence, then table/reset controls and a source/method note. `summary`, `legend`,
 `actions` and inspection are optional. A single series needs no legend. Slots named
-`header`, `inspection` and `footer` accept host-owned additions. BoxPlot and
-MetricCard also expose a footer slot. Use `::part()` and `--boe-chart-ink`,
+`header`, `inspection` and `footer` accept host-owned additions. BoxPlot,
+MetricCard and DistributionTimeline also expose a footer slot. Use `::part()` and `--boe-chart-ink`,
 `--boe-chart-muted`, `--boe-chart-history` for local theming. Focus and selection
 have distinct outlines; selected marks also say “Selected”.
 
@@ -74,8 +74,14 @@ Bar/line selection now reflects an ID and pressed state; history is gray and
 the focal interval is blue. Explicit tone overrides retain their meaning.
 Actions move to the footer. Inspection copy is opt-in, so existing summary-only
 consumers remain usable. The point value type now permits null for missing observations; TypeScript event handlers must guard `value === null` before arithmetic. New properties require the next library release; no version is bumped in this local design phase. Donut data is now a native table rather than a layout
-list; the `legend-*` styling parts remain. The distribution table intentionally
-uses four priority columns with quartiles/extremes in disclosure.
+list; the `legend-*` styling parts remain. The distribution tables intentionally
+use four priority columns with quartiles/extremes in disclosure.
+
+DistributionTimeline follows the same contract for a run rather than a category:
+`state`, `status-message` and `domain` behave as above, and `selectable` opts into
+interval inspection, which reflects `selected-id` and emits `interval-selected`.
+Because a run can hold hundreds of intervals, its marks are one tab stop with the
+arrow keys moving between them rather than one tab stop each.
 
 Automated accessibility checks are not a manual screen-reader pass. Design
 acceptance is a separate review of rendered desktop/mobile output against the

@@ -166,3 +166,6 @@ docs/audits/bue-conformance-*audit.data.json
 # Dev-tool scratch output (density-audit report, etc.)
 tmp/
 BOX_OPEN_ELEMENTS_DOCS_SITE_AGENT_INSTRUCTIONS.md
+
+# Local acceptance evidence from tools/preview/distribution-timeline-ux.ts
+.timeline-evidence/

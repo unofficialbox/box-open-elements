@@ -20,9 +20,21 @@ Sampled values are an inspection layer, **off by default**. The “Sampled value
 
 `maxSamples` / `max-samples` defaults to 600. All supplied samples are shown when they fit the cap; larger sets are thinned across the time axis. The note and control name disclose the actual shown and supplied counts. Dots retain a circular, fixed-pixel shape at desktop/mobile widths. They are not a continuous density estimate.
 
-“Show as a table” retains **every valid interval’s** time, minimum, Q1, median, Q3, maximum and optional count. The named scroll region is keyboard accessible at narrow widths. Empty data stays explicit even if it arrives while the table is open.
+“Show as a table” retains **every valid interval**. Following the box plot, it leads with four priority columns — time, median, minimum–maximum range and optional count — and keeps each interval’s quartiles and extremes in a per-row disclosure, so seven numeric columns do not have to fit a phone. The named scroll region is keyboard accessible at narrow widths. Empty data stays explicit even if it arrives while the table is open.
+
+## Inspection
+
+Interval inspection is opt-in, as the box plot’s row selection is: `selectable` adds one control per interval over the plot. Without it the plot stays a single image with a single accessible summary, which is what an embedded or printed chart wants.
+
+The controls are **one tab stop** for the whole run — ArrowLeft/ArrowRight, Home and End move between intervals, and a five-hundred-second run does not become five hundred tab stops. Click, Enter or Space selects; moving focus does not. Selection reflects `selectedId` / `selected-id` and emits `interval-selected` with `{ id, at }`. An interval’s id is its own `id` when the host supplies one and its time otherwise, so hosts with repeated timestamps should supply ids. Hosts may set the id directly.
+
+A selected interval is marked in the plot and summarised below it — quartiles, median, minimum–maximum, count and sample count — with the interval also named “Selected” in the table. “Clear selection” removes the id, emits `selection-cleared`, and returns focus to the interval it left.
 
 ## Scale, state and accessibility
+
+`state="loading|error|partial|stale"` and `status-message` cover a run’s coverage the way the rest of the family does: loading and error replace the plot rather than drawing intervals the host does not have (loading keeps a blank region of the plot’s height and the panel reports `aria-busy`), while partial and cached runs stay drawn with the reason beside them. The default is `ready`.
+
+`domain` optionally supplies containing `[min, max]` value bounds. They are used only on a linear scale and only when every drawn statistic and sample falls inside them: a value is never clipped to make the bounds fit. `xLabel` / `x-label` titles the time axis.
 
 `scale="linear|log"` reuses the box-plot value scale. Log requires positive statistics/samples. Invalid intervals are omitted and counted in the visible method note. A single valid interval is centered at its actual timestamp; it does not claim an extra interval of elapsed time. The time axis uses readable numeric ticks, including subsecond times.
 
@@ -30,10 +42,10 @@ Sampled values are an inspection layer, **off by default**. The “Sampled value
 
 The plot remains one keyboard-focusable image. Its accessible name states the interval count, actual start/end times, first/last medians and the highest interval value with its time. Shape, thickness, labels and the exact table supplement color. Automated accessibility checks are recorded separately from manual screen-reader acceptance; no manual pass is claimed.
 
-Theme via `--boe-distribution-grid`, `--boe-distribution-range`, `--boe-distribution-band`, `--boe-distribution-edge`, `--boe-distribution-median` and `--boe-distribution-dot`, with the shared Box tokens as defaults.
+Theme via `--boe-chart-ink`, `--boe-chart-muted`, `--boe-distribution-grid`, `--boe-distribution-range`, `--boe-distribution-band`, `--boe-distribution-edge`, `--boe-distribution-median` and `--boe-distribution-dot`, with the shared Box tokens as defaults.
 
 ## Presentation migration
 
-The previous continuous min–max/Q1–Q3 filled areas have been replaced by discrete interval marks. `range` now identifies a whisker line, and `band` identifies each interval’s quartile rectangle; custom `::part()` themes should account for that geometry. Sample dots now require the inspection control or `show-samples`; existing `hide-samples` continues to suppress them. The statistics, value scale, full table and host data model remain intact.
+The table’s six statistic columns are now four priority columns with the quartiles and extremes in disclosure; `[part="table-summary"]` and `[part="table-detail"]` identify the two rows an interval occupies, as they do in the box plot. No statistic is lost. The previous continuous min–max/Q1–Q3 filled areas have been replaced by discrete interval marks. `range` now identifies a whisker line, and `band` identifies each interval’s quartile rectangle; custom `::part()` themes should account for that geometry. Sample dots now require the inspection control or `show-samples`; existing `hide-samples` continues to suppress them. The statistics, value scale, full table and host data model remain intact.
 
 Long runs retain every interval in a locally scrollable plot with minimum mark spacing. The value axis stays visible, and the full-run latest summary and exact table remain available. Keyboard users can focus the plot region and scroll horizontally.

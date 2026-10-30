@@ -56,7 +56,7 @@ export interface BoxElementPropertyKeys {
   "box-date-field": "clearable" | "description" | "disabled" | "errorMessage" | "hideLabel" | "invalid" | "label" | "max" | "min" | "name" | "required" | "value";
   "box-dialog": "confirmBusy" | "confirmBusyLabel" | "confirmDisabled" | "confirmLabel" | "confirmTone" | "description" | "heading" | "open" | "size";
   "box-diff-viewer": "afterLabel" | "afterText" | "beforeLabel" | "beforeText" | "heading" | "mode";
-  "box-distribution-timeline": "description" | "embedded" | "format" | "heading" | "headingLevel" | "hideNote" | "hideSamples" | "maxSamples" | "points" | "scale" | "showSamples" | "timeUnit" | "unit";
+  "box-distribution-timeline": "description" | "domain" | "embedded" | "format" | "heading" | "headingLevel" | "hideNote" | "hideSamples" | "maxSamples" | "points" | "scale" | "selectable" | "selectedId" | "showSamples" | "state" | "statusMessage" | "timeUnit" | "unit" | "xLabel";
   "box-divider": "label" | "orientation";
   "box-document-list": "blocks" | "items" | "labels" | "selectableDocuments";
   "box-donut-chart": "actions" | "categoryLabel" | "heading" | "message" | "note" | "readOnly" | "segments" | "state" | "statusMessage" | "summary" | "timeframe" | "total" | "totalLabel" | "unit";
@@ -354,7 +354,9 @@ export interface BoxElementEventMap {
     "change-focused": CustomEvent<{ index: number; total: number; }>;
   };
   "box-distribution-timeline": {
+    "interval-selected": CustomEvent<{ id: string; at: number; }>;
     "samples-toggled": CustomEvent<{ visible: boolean; }>;
+    "selection-cleared": CustomEvent<{ selectedId: null; }>;
   };
   "box-divider": {};
   "box-document-list": {

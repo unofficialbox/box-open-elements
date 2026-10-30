@@ -5866,7 +5866,7 @@
       "title": "Patterns/Insights/Distribution Timeline",
       "category": "Insights",
       "shortDescription": "Watch one measurement's distribution move over a run.",
-      "docsDescription": "Provide one host-computed summary per interval. Separate interval boxes show Q1–Q3, capped whiskers show minimum–maximum, and a blue line follows the medians. Host-supplied samples are an optional inspection layer, off by default, with bounded thinning across time.",
+      "docsDescription": "Provide one host-computed summary per interval. Separate interval boxes show Q1–Q3, capped whiskers show minimum–maximum, and a blue line follows the medians. Host-supplied samples are an optional inspection layer, off by default, with bounded thinning across time. With `selectable`, one interval at a time can be inspected from the keyboard, and `state` covers loading, failed, partial and cached runs.",
       "sourceSnippet": "<box-distribution-timeline heading=\"Upload latency\" description=\"Illustrative run · one summary every 5 seconds\" unit=\"ms\" time-unit=\"s\" points='[{\"at\":0,\"min\":15,\"q1\":29,\"median\":38,\"q3\":50,\"max\":90,\"count\":1180,\"samples\":[42,46,46,49,51,64]},{\"at\":5,\"min\":16,\"q1\":30,\"median\":40,\"q3\":53,\"max\":93,\"count\":1187,\"samples\":[16,27,36,39,41,64]},{\"at\":10,\"min\":16,\"q1\":30,\"median\":41,\"q3\":55,\"max\":95,\"count\":1194,\"samples\":[36,41,75,79,87,92]},{\"at\":15,\"min\":20,\"q1\":34,\"median\":43,\"q3\":58,\"max\":98,\"count\":1201,\"samples\":[22,43,55,69,72,83]},{\"at\":20,\"min\":20,\"q1\":34,\"median\":44,\"q3\":56,\"max\":96,\"count\":1208,\"samples\":[37,40,44,47,53,80]},{\"at\":25,\"min\":21,\"q1\":35,\"median\":46,\"q3\":59,\"max\":99,\"count\":1215,\"samples\":[24,44,71,86,95,97]},{\"at\":30,\"min\":28,\"q1\":42,\"median\":51,\"q3\":65,\"max\":133,\"count\":1222,\"samples\":[44,52,60,76,83,111]},{\"at\":35,\"min\":28,\"q1\":42,\"median\":52,\"q3\":67,\"max\":135,\"count\":1229,\"samples\":[30,35,81,103,106,118]},{\"at\":40,\"min\":26,\"q1\":40,\"median\":51,\"q3\":63,\"max\":103,\"count\":1236,\"samples\":[61,62,64,73,87,97]},{\"at\":45,\"min\":29,\"q1\":43,\"median\":52,\"q3\":65,\"max\":105,\"count\":1243,\"samples\":[31,40,47,57,60,70]},{\"at\":50,\"min\":30,\"q1\":44,\"median\":54,\"q3\":68,\"max\":108,\"count\":1250,\"samples\":[55,61,70,81,91,104]},{\"at\":55,\"min\":31,\"q1\":45,\"median\":56,\"q3\":71,\"max\":111,\"count\":1257,\"samples\":[38,39,40,49,83,96]},{\"at\":60,\"min\":34,\"q1\":48,\"median\":57,\"q3\":69,\"max\":109,\"count\":1264,\"samples\":[35,43,81,86,103,105]}]'></box-distribution-timeline>",
       "referenceRows": [
         {
@@ -5946,6 +5946,54 @@
           "name": "max-samples",
           "type": "number",
           "description": "Cap on plotted sample dots, default 600. Larger sets are thinned across the time axis."
+        },
+        {
+          "kind": "attribute",
+          "name": "selectable",
+          "type": "boolean",
+          "description": "Opt into interval inspection: one control per interval, reached with one tab stop and the arrow keys."
+        },
+        {
+          "kind": "attribute",
+          "name": "selected-id",
+          "type": "string",
+          "description": "The inspected interval's id, which is its point id or, without one, its time. Hosts may set it directly."
+        },
+        {
+          "kind": "event",
+          "name": "interval-selected",
+          "type": "{ id: string; at: number }",
+          "description": "An interval was selected by click, Enter or Space."
+        },
+        {
+          "kind": "event",
+          "name": "selection-cleared",
+          "type": "{ selectedId: null }",
+          "description": "Clear selection returned inspection to the latest interval."
+        },
+        {
+          "kind": "attribute",
+          "name": "domain",
+          "type": "json",
+          "description": "Containing [min, max] value bounds. Ignored on a log scale, or when a drawn value falls outside them; values are never clipped."
+        },
+        {
+          "kind": "attribute",
+          "name": "state",
+          "type": "string",
+          "description": "ready, loading, error, partial or stale. Loading and error replace the plot rather than drawing cached intervals."
+        },
+        {
+          "kind": "attribute",
+          "name": "status-message",
+          "type": "string",
+          "description": "Host copy for the coverage or timestamp behind state."
+        },
+        {
+          "kind": "attribute",
+          "name": "x-label",
+          "type": "string",
+          "description": "Title for the time axis."
         }
       ],
       "variants": [
@@ -5960,6 +6008,18 @@
         {
           "name": "Log scale",
           "html": "<box-distribution-timeline scale=\"log\" hide-samples heading=\"Upload latency\" description=\"Illustrative run · one summary every 5 seconds\" unit=\"ms\" time-unit=\"s\" points='[{\"at\":0,\"min\":15,\"q1\":29,\"median\":38,\"q3\":50,\"max\":90,\"count\":1180,\"samples\":[42,46,46,49,51,64]},{\"at\":5,\"min\":16,\"q1\":30,\"median\":40,\"q3\":53,\"max\":93,\"count\":1187,\"samples\":[16,27,36,39,41,64]},{\"at\":10,\"min\":16,\"q1\":30,\"median\":41,\"q3\":55,\"max\":95,\"count\":1194,\"samples\":[36,41,75,79,87,92]},{\"at\":15,\"min\":20,\"q1\":34,\"median\":43,\"q3\":58,\"max\":98,\"count\":1201,\"samples\":[22,43,55,69,72,83]},{\"at\":20,\"min\":20,\"q1\":34,\"median\":44,\"q3\":56,\"max\":96,\"count\":1208,\"samples\":[37,40,44,47,53,80]},{\"at\":25,\"min\":21,\"q1\":35,\"median\":46,\"q3\":59,\"max\":99,\"count\":1215,\"samples\":[24,44,71,86,95,97]},{\"at\":30,\"min\":28,\"q1\":42,\"median\":51,\"q3\":65,\"max\":133,\"count\":1222,\"samples\":[44,52,60,76,83,111]},{\"at\":35,\"min\":28,\"q1\":42,\"median\":52,\"q3\":67,\"max\":135,\"count\":1229,\"samples\":[30,35,81,103,106,118]},{\"at\":40,\"min\":26,\"q1\":40,\"median\":51,\"q3\":63,\"max\":103,\"count\":1236,\"samples\":[61,62,64,73,87,97]},{\"at\":45,\"min\":29,\"q1\":43,\"median\":52,\"q3\":65,\"max\":105,\"count\":1243,\"samples\":[31,40,47,57,60,70]},{\"at\":50,\"min\":30,\"q1\":44,\"median\":54,\"q3\":68,\"max\":108,\"count\":1250,\"samples\":[55,61,70,81,91,104]},{\"at\":55,\"min\":31,\"q1\":45,\"median\":56,\"q3\":71,\"max\":111,\"count\":1257,\"samples\":[38,39,40,49,83,96]},{\"at\":60,\"min\":34,\"q1\":48,\"median\":57,\"q3\":69,\"max\":109,\"count\":1264,\"samples\":[35,43,81,86,103,105]}]'></box-distribution-timeline>"
+        },
+        {
+          "name": "Inspect intervals",
+          "html": "<box-distribution-timeline selectable x-label=\"Seconds into the run\" heading=\"Upload latency\" description=\"Illustrative run · one summary every 5 seconds\" unit=\"ms\" time-unit=\"s\" points='[{\"at\":0,\"min\":15,\"q1\":29,\"median\":38,\"q3\":50,\"max\":90,\"count\":1180,\"samples\":[42,46,46,49,51,64]},{\"at\":5,\"min\":16,\"q1\":30,\"median\":40,\"q3\":53,\"max\":93,\"count\":1187,\"samples\":[16,27,36,39,41,64]},{\"at\":10,\"min\":16,\"q1\":30,\"median\":41,\"q3\":55,\"max\":95,\"count\":1194,\"samples\":[36,41,75,79,87,92]},{\"at\":15,\"min\":20,\"q1\":34,\"median\":43,\"q3\":58,\"max\":98,\"count\":1201,\"samples\":[22,43,55,69,72,83]},{\"at\":20,\"min\":20,\"q1\":34,\"median\":44,\"q3\":56,\"max\":96,\"count\":1208,\"samples\":[37,40,44,47,53,80]},{\"at\":25,\"min\":21,\"q1\":35,\"median\":46,\"q3\":59,\"max\":99,\"count\":1215,\"samples\":[24,44,71,86,95,97]},{\"at\":30,\"min\":28,\"q1\":42,\"median\":51,\"q3\":65,\"max\":133,\"count\":1222,\"samples\":[44,52,60,76,83,111]},{\"at\":35,\"min\":28,\"q1\":42,\"median\":52,\"q3\":67,\"max\":135,\"count\":1229,\"samples\":[30,35,81,103,106,118]},{\"at\":40,\"min\":26,\"q1\":40,\"median\":51,\"q3\":63,\"max\":103,\"count\":1236,\"samples\":[61,62,64,73,87,97]},{\"at\":45,\"min\":29,\"q1\":43,\"median\":52,\"q3\":65,\"max\":105,\"count\":1243,\"samples\":[31,40,47,57,60,70]},{\"at\":50,\"min\":30,\"q1\":44,\"median\":54,\"q3\":68,\"max\":108,\"count\":1250,\"samples\":[55,61,70,81,91,104]},{\"at\":55,\"min\":31,\"q1\":45,\"median\":56,\"q3\":71,\"max\":111,\"count\":1257,\"samples\":[38,39,40,49,83,96]},{\"at\":60,\"min\":34,\"q1\":48,\"median\":57,\"q3\":69,\"max\":109,\"count\":1264,\"samples\":[35,43,81,86,103,105]}]'></box-distribution-timeline>"
+        },
+        {
+          "name": "Partial coverage",
+          "html": "<box-distribution-timeline state=\"partial\" status-message=\"Coverage is incomplete; later intervals hold fewer calls.\" heading=\"Upload latency\" description=\"Illustrative run · one summary every 5 seconds\" unit=\"ms\" time-unit=\"s\" points='[{\"at\":0,\"min\":15,\"q1\":29,\"median\":38,\"q3\":50,\"max\":90,\"count\":1180,\"samples\":[42,46,46,49,51,64]},{\"at\":5,\"min\":16,\"q1\":30,\"median\":40,\"q3\":53,\"max\":93,\"count\":1187,\"samples\":[16,27,36,39,41,64]},{\"at\":10,\"min\":16,\"q1\":30,\"median\":41,\"q3\":55,\"max\":95,\"count\":1194,\"samples\":[36,41,75,79,87,92]},{\"at\":15,\"min\":20,\"q1\":34,\"median\":43,\"q3\":58,\"max\":98,\"count\":1201,\"samples\":[22,43,55,69,72,83]},{\"at\":20,\"min\":20,\"q1\":34,\"median\":44,\"q3\":56,\"max\":96,\"count\":1208,\"samples\":[37,40,44,47,53,80]},{\"at\":25,\"min\":21,\"q1\":35,\"median\":46,\"q3\":59,\"max\":99,\"count\":1215,\"samples\":[24,44,71,86,95,97]},{\"at\":30,\"min\":28,\"q1\":42,\"median\":51,\"q3\":65,\"max\":133,\"count\":1222,\"samples\":[44,52,60,76,83,111]},{\"at\":35,\"min\":28,\"q1\":42,\"median\":52,\"q3\":67,\"max\":135,\"count\":1229,\"samples\":[30,35,81,103,106,118]},{\"at\":40,\"min\":26,\"q1\":40,\"median\":51,\"q3\":63,\"max\":103,\"count\":1236,\"samples\":[61,62,64,73,87,97]},{\"at\":45,\"min\":29,\"q1\":43,\"median\":52,\"q3\":65,\"max\":105,\"count\":1243,\"samples\":[31,40,47,57,60,70]},{\"at\":50,\"min\":30,\"q1\":44,\"median\":54,\"q3\":68,\"max\":108,\"count\":1250,\"samples\":[55,61,70,81,91,104]},{\"at\":55,\"min\":31,\"q1\":45,\"median\":56,\"q3\":71,\"max\":111,\"count\":1257,\"samples\":[38,39,40,49,83,96]},{\"at\":60,\"min\":34,\"q1\":48,\"median\":57,\"q3\":69,\"max\":109,\"count\":1264,\"samples\":[35,43,81,86,103,105]}]'></box-distribution-timeline>"
+        },
+        {
+          "name": "Load error",
+          "html": "<box-distribution-timeline state=\"error\" status-message=\"Intervals could not be loaded. Retry from the host application.\" heading=\"Upload latency\" description=\"Illustrative run · one summary every 5 seconds\" unit=\"ms\" time-unit=\"s\" points='[{\"at\":0,\"min\":15,\"q1\":29,\"median\":38,\"q3\":50,\"max\":90,\"count\":1180,\"samples\":[42,46,46,49,51,64]},{\"at\":5,\"min\":16,\"q1\":30,\"median\":40,\"q3\":53,\"max\":93,\"count\":1187,\"samples\":[16,27,36,39,41,64]},{\"at\":10,\"min\":16,\"q1\":30,\"median\":41,\"q3\":55,\"max\":95,\"count\":1194,\"samples\":[36,41,75,79,87,92]},{\"at\":15,\"min\":20,\"q1\":34,\"median\":43,\"q3\":58,\"max\":98,\"count\":1201,\"samples\":[22,43,55,69,72,83]},{\"at\":20,\"min\":20,\"q1\":34,\"median\":44,\"q3\":56,\"max\":96,\"count\":1208,\"samples\":[37,40,44,47,53,80]},{\"at\":25,\"min\":21,\"q1\":35,\"median\":46,\"q3\":59,\"max\":99,\"count\":1215,\"samples\":[24,44,71,86,95,97]},{\"at\":30,\"min\":28,\"q1\":42,\"median\":51,\"q3\":65,\"max\":133,\"count\":1222,\"samples\":[44,52,60,76,83,111]},{\"at\":35,\"min\":28,\"q1\":42,\"median\":52,\"q3\":67,\"max\":135,\"count\":1229,\"samples\":[30,35,81,103,106,118]},{\"at\":40,\"min\":26,\"q1\":40,\"median\":51,\"q3\":63,\"max\":103,\"count\":1236,\"samples\":[61,62,64,73,87,97]},{\"at\":45,\"min\":29,\"q1\":43,\"median\":52,\"q3\":65,\"max\":105,\"count\":1243,\"samples\":[31,40,47,57,60,70]},{\"at\":50,\"min\":30,\"q1\":44,\"median\":54,\"q3\":68,\"max\":108,\"count\":1250,\"samples\":[55,61,70,81,91,104]},{\"at\":55,\"min\":31,\"q1\":45,\"median\":56,\"q3\":71,\"max\":111,\"count\":1257,\"samples\":[38,39,40,49,83,96]},{\"at\":60,\"min\":34,\"q1\":48,\"median\":57,\"q3\":69,\"max\":109,\"count\":1264,\"samples\":[35,43,81,86,103,105]}]'></box-distribution-timeline>"
         }
       ]
     },
