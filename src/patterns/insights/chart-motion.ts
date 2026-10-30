@@ -84,7 +84,13 @@ export class ChartMotion {
   private onInteraction=(event: Event)=>{
     const element=event.composedPath().find(node=>node instanceof Element) as Element|undefined;
     if(!element||element.closest('[part="animation-controls"]'))return;
-    if(this.host.animationPreset==="loop")queueMicrotask(()=>this.pulse(element));
+    if(this.host.animationPreset==="loop")queueMicrotask(()=>{
+      if(!this.connected)return;
+      // A roving control may move focus before keydown bubbles to this listener.
+      // Inspect the resulting focus, rather than pulsing the former key target.
+      const active=chartRoot(this.host).activeElement??this.host.shadowRoot?.activeElement;
+      this.pulse(event.type==="keydown"&&active?active:element);
+    });
     else if(event.type==="focusin"||event.type==="pointerdown")this.finish();
   };
   private onLeave=()=>{if(this.host.animationPreset==="loop")this.cancel();};

@@ -104,12 +104,29 @@ try {
  await page.goto(`${base}/#patterns/grouped-bar-chart`);await page.waitForSelector('body[data-route-ready="patterns/grouped-bar-chart"]');
  await page.getByLabel("Preview variant").selectOption({label:"Active mark loop"});
  const chart=page.locator('box-grouped-bar-chart').first(),plot=chart.locator('[part="plot"]');await plot.focus();await page.keyboard.press("ArrowRight");
- check(await chart.evaluate((chart:any)=>Array.from(chart.shadowRoot.querySelectorAll('[part="focus-marker"] circle')).some((node:any)=>node.getAnimations().some((a:Animation)=>a.effect!.getTiming().iterations===Infinity))),'Active point loop did not run');
+ // ResizeObserver can replace the just-inspected mark during the same frame.
+ await page.waitForFunction(()=>Array.from(document.querySelector('box-grouped-bar-chart')!.shadowRoot!.querySelectorAll('[part="focus-marker"] circle')).some(node=>node.getAnimations().some(a=>a.effect!.getTiming().iterations===Infinity)));
  await chart.locator('[part="mark"]').nth(1).hover();
- check(await chart.locator('[part="mark"]').nth(1).evaluate((node:any)=>node.getAnimations().some((a:Animation)=>a.effect!.getTiming().iterations===Infinity)),'Pointer loop did not follow the hovered mark');
+ await page.waitForFunction(()=>document.querySelector('box-grouped-bar-chart')!.shadowRoot!.querySelectorAll('[part="mark"]')[1]?.getAnimations().some(a=>a.effect!.getTiming().iterations===Infinity));
  await chart.getByRole("button",{name:"Pause animation",exact:true}).click();
  await chart.evaluate((chart:any)=>{const parent=chart.parentNode;chart.remove();parent.append(chart);});
  await chart.evaluate((chart:any)=>chart.finishAnimation());
+ // Current-main interval controls must animate their associated visible marks.
+ await page.goto(`${base}/#patterns/distribution-timeline`);await page.waitForSelector('body[data-route-ready="patterns/distribution-timeline"]');
+ await page.getByLabel("Preview variant").selectOption({label:"Inspect intervals"});
+ const timelineChart=page.locator('box-distribution-timeline').first();
+ await timelineChart.evaluate((chart:any)=>{chart.animated=true;chart.animationPreset='loop';chart.animationLoop=true;});
+ await timelineChart.locator('[part="interval-control"]').nth(1).focus();
+ await page.waitForFunction(()=>{
+   const root=document.querySelector('box-distribution-timeline')!.shadowRoot!,control=root.activeElement as HTMLElement|null;
+   return [...root.querySelectorAll('[part="interval"]')].some(node=>(node as HTMLElement).dataset.animationPointId===control?.dataset.pointId&&node.getAnimations().some(a=>a.effect!.getTiming().iterations===Infinity));
+ });
+ await page.keyboard.press('End');
+ await page.waitForFunction(()=>{
+   const root=document.querySelector('box-distribution-timeline')!.shadowRoot!,control=root.activeElement as HTMLElement|null,marks=root.querySelectorAll('[part="interval"]'),last=marks[marks.length-1] as HTMLElement;
+   return last.dataset.animationPointId===control?.dataset.pointId&&last.getAnimations().some(a=>a.effect!.getTiming().iterations===Infinity);
+ });
+ await timelineChart.evaluate((chart:any)=>chart.finishAnimation());
  await page.goto(`${base}/#patterns/scatter-chart`);await page.waitForSelector('body[data-route-ready="patterns/scatter-chart"]');
  await page.getByLabel("Preview variant").selectOption({label:"Animated entrance"});
  const denseChart=page.locator('box-scatter-chart').first();

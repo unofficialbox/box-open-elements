@@ -220,6 +220,10 @@ it("pulses the visual interval associated with the distribution timeline's selec
   expect(target.element.getAttribute("part")).toBe("interval");
   expect(target.element.getAttribute("data-animation-point-id")).toBe(controls[1].dataset.pointId);
   expect(target.options.iterations).toBe(Infinity);
+  controls[1].dispatchEvent(new KeyboardEvent("keydown",{key:"End",bubbles:true}));await flush();
+  expect(chart.shadowRoot!.activeElement).toBe(controls[controls.length-1]);
+  expect(recorded.at(-1)!.element.getAttribute("data-animation-point-id")).toBe(controls[controls.length-1].dataset.pointId);
+  expect(target.animation.cancel).toHaveBeenCalled();
 });
 
 it.each(["box-plot","distribution-timeline"])("animates settled property snapshots in %s and settles rapid replacements",async id=>{
@@ -233,4 +237,11 @@ it.each(["box-plot","distribution-timeline"])("animates settled property snapsho
   const after=recorded.length;clock.mockReturnValue(2100);chart[field]=structuredClone(values);await flush();
   expect(recorded).toHaveLength(after);
   expect(chart[field][0]).toEqual(values[0]);
+});
+
+it("does not start a queued inspection pulse after its chart disconnects",async()=>{
+  const chart=mount("distribution-timeline",'animated animation-preset="loop" animation-loop selectable');await flush();
+  const before=recorded.length;
+  chart.shadowRoot!.querySelector<HTMLButtonElement>('[part="interval-control"]')!.focus();chart.remove();await flush();
+  expect(recorded).toHaveLength(before);
 });

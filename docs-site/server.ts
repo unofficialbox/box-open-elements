@@ -22,7 +22,7 @@ const CONTENT_TYPES: Record<string, string> = {
 
 const build = await Bun.build({
   entrypoints: [join(ROOT, "docs-site/main.ts")],
-  external: ["box-open-elements"],
+  external: ["@unofficialbox/box-open-elements"],
   format: "esm",
   minify: false,
   // Foundation markdown docs are inlined as text and rendered in-shell.

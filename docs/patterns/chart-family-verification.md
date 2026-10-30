@@ -40,3 +40,7 @@ The 93 focused chart tests and typecheck passed, followed by the full 3,899-test
 Repository baseline candidates are in `docs/screenshots/docs-site/insights-*.png`; new names identify the chart family or variant. The local interactive preview is `http://localhost:4605/#patterns/grouped-bar-chart` while the owned preview server is running. Acceptance screenshots and machine-readable results are retained at `/tmp/boe-chart-family-validation/.regression-tmp/chart-family/`.
 
 Validation logs: `/tmp/boe-chart-family-final-verify.log`, `/tmp/boe-chart-family-final-build.log`, `/tmp/boe-chart-family-browser.log`, `/tmp/boe-chart-family-pixel-final.log` (initial capture and five sidebar differences), and `/tmp/boe-chart-family-pixel-comparison.log` (reviewed final comparison and conformance).
+
+## Publication for review
+
+The previously local implementation is now in [draft PR #613](https://github.com/unofficialbox/box-open-elements/pull/613), with current main's distribution-timeline presentation and interaction changes retained. Counts above record their original checkpoints; post-integration results are in [the animation verification follow-up](chart-animation-verification.md) and the PR. No package version, release or merge was performed.
