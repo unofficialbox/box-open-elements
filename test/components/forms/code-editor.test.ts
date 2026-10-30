@@ -26,21 +26,24 @@ afterEach(() => {
   vi.useRealTimers();
 });
 describe("code editor", () => {
-  it("colors parsed bracket pairs by depth and flags unmatched tokens without coloring strings or comments", () => {
+  it("colors parsed bracket pairs by depth and flags unmatched tokens without coloring strings or comments", async () => {
     const editor = new CodeEditor();
     editor.bracketColors = true;
     editor.value = 'const x = { a: [1, (2)] }; // []\nconst y = "{}";\nconst z = ]';
     document.body.append(editor);
     const shadow = editor.shadowRoot!;
+    // Parsing may complete after the initial render when the worker is busy.
+    await vi.waitFor(() => {
     expect([...shadow.querySelectorAll(".boe-code-bracket-1")].map(node => node.textContent)).toEqual(["{", "}"]);
     expect([...shadow.querySelectorAll(".boe-code-bracket-2")].map(node => node.textContent)).toEqual(["[", "]"]);
     expect([...shadow.querySelectorAll(".boe-code-bracket-3")].map(node => node.textContent)).toEqual(["(", ")"]);
     expect([...shadow.querySelectorAll(".boe-code-bracket-unmatched")].map(node => node.textContent)).toEqual(["]"]);
     expect(shadow.querySelector(".cm-comment .boe-code-bracket-1, .cm-string .boe-code-bracket-1")).toBeNull();
+    }, { timeout: 3000 });
     editor.value = "const x = { value: 1";
-    expect([...shadow.querySelectorAll(".boe-code-bracket-unmatched")].map(node => node.textContent)).toEqual(["{"]);
+    await vi.waitFor(() => expect([...shadow.querySelectorAll(".boe-code-bracket-unmatched")].map(node => node.textContent)).toEqual(["{"]), { timeout: 3000 });
     editor.value = "const x = { value: [1] };";
-    expect(shadow.querySelectorAll(".boe-code-bracket-unmatched")).toHaveLength(0);
+    await vi.waitFor(() => expect(shadow.querySelectorAll(".boe-code-bracket-unmatched")).toHaveLength(0), { timeout: 3000 });
     editor.bracketColors = false;
     expect(shadow.querySelector(".boe-code-bracket-1")).toBeNull();
   });

@@ -5,6 +5,9 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
 import {
+  StackedBarChart,
+  RangeChart,
+  FindingsDisclosure,
   FolderTree,
   FolderTreeDiff,
   Accordion,
@@ -15,6 +18,9 @@ import {
 import { Accordion as OptimizedAccordion } from "../src/entries/accordion.js";
 import { FolderTree as OptimizedFolderTree } from "../src/entries/folder-tree.js";
 import { FolderTreeDiff as OptimizedFolderTreeDiff } from "../src/entries/folder-tree-diff.js";
+import { StackedBarChart as OptimizedStackedBarChart } from "../src/entries/stacked-bar-chart.js";
+import { RangeChart as OptimizedRangeChart } from "../src/entries/range-chart.js";
+import { FindingsDisclosure as OptimizedFindingsDisclosure } from "../src/entries/findings-disclosure.js";
 import { CodeEditor } from "../src/entries/code-editor.js";
 
 describe("concise component API", () => {
@@ -34,6 +40,9 @@ describe("concise component API", () => {
   });
 
   it("maps optimized component entrypoints to the same classes", () => {
+    expect(OptimizedStackedBarChart).toBe(StackedBarChart);
+    expect(OptimizedRangeChart).toBe(RangeChart);
+    expect(OptimizedFindingsDisclosure).toBe(FindingsDisclosure);
     expect(OptimizedAccordion).toBe(Accordion);
     expect(OptimizedFolderTree).toBe(FolderTree);
     expect(OptimizedFolderTreeDiff).toBe(FolderTreeDiff);
@@ -43,6 +52,9 @@ describe("concise component API", () => {
     expect(globalThis.customElements).toBeUndefined();
     expect(Accordion.register()).toBe(Accordion);
     expect(CodeEditor.register()).toBe(CodeEditor);
+    expect(StackedBarChart.register()).toBe(StackedBarChart);
+    expect(RangeChart.register()).toBe(RangeChart);
+    expect(FindingsDisclosure.register()).toBe(FindingsDisclosure);
     expect(FolderTree.register()).toBe(FolderTree);
     expect(FolderTreeDiff.register()).toBe(FolderTreeDiff);
   });
@@ -51,6 +63,6 @@ describe("concise component API", () => {
     const entries = readdirSync(join(import.meta.dirname, "../src/entries"))
       .filter(file => file.endsWith(".ts"));
 
-    expect(entries).toHaveLength(164);
+    expect(entries).toHaveLength(167);
   });
 });

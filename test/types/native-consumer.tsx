@@ -179,3 +179,21 @@ void formApiView;
 import { TextField as ReactApiTextField } from "@unofficialbox/box-open-elements-react";
 const adapterApiView = <ReactApiTextField readonly={true} ref={element => element?.select()} />;
 void adapterApiView;
+
+const analyticViews = <>
+  <box-stacked-bar-chart bars={[{id:"a",label:"A",segments:[{id:"tools",label:"Tools",value:20237}]}]}
+    orientation="horizontal" seriesTokens={{tools:"--app-tools"}} format={value=>`${value}`} />
+  <box-range-chart rows={[{id:"cache",label:"Cache",low:12,high:58}]} unit="%" />
+  <box-line-chart series={[{id:"direct",label:"Direct",points:[{x:2250,y:539}]}]}
+    xScale="log" xFormat={value=>`${value} chars`} yFormat={value=>`${value} tokens`}
+    markers={[{id:"sample",axis:"x",value:2250,label:"Measured"}]} />
+  <box-findings-disclosure findings={["Lead"]} corrections={[{field:"Scope",was:"All",now:"Sample",why:"Coverage"}]}
+    leadCount={1} onexpanded-changed={event=>{const expanded:boolean=event.detail.expanded;void expanded;}} />
+  {/* @ts-expect-error a range requires numeric bounds */}
+  <box-range-chart rows={[{id:"bad",label:"Bad",low:"12",high:58}]} />
+  {/* @ts-expect-error supply bounds or an explicit comparison range list */}
+  <box-range-chart rows={[{id:"missing",label:"Missing"}]} />
+  {/* @ts-expect-error numeric x values must be numbers */}
+  <box-line-chart series={[{id:"bad",label:"Bad",points:[{x:"2250",y:539}]}]} />
+</>;
+void analyticViews;

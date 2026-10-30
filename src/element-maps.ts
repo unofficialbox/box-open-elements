@@ -76,6 +76,7 @@ import type { FactList } from "./components/collections/fact-list.js";
 import type { Fieldset } from "./components/forms/fieldset.js";
 import type { FileRequestBuilder } from "./patterns/file-request/file-request-builder.js";
 import type { FilterBar } from "./patterns/search/filter-bar.js";
+import type { FindingsDisclosure } from "./patterns/governance/findings-disclosure.js";
 import type { FlowBuilder } from "./patterns/flow-builder/flow-builder.js";
 import type { FlowCard } from "./patterns/flow-builder/primitives.js";
 import type { FlowSpine } from "./patterns/flow-builder/primitives.js";
@@ -130,6 +131,7 @@ import type { ProgressRing } from "./components/feedback/progress-ring.js";
 import type { ProgressSteps } from "./components/feedback/progress-steps.js";
 import type { ProvenanceStrip } from "./patterns/lineage/provenance-strip.js";
 import type { RadioGroup } from "./components/forms/radio-group.js";
+import type { RangeChart } from "./patterns/insights/range-chart.js";
 import type { RangeSlider } from "./components/forms/range-slider.js";
 import type { Rating } from "./components/forms/rating.js";
 import type { RelativeTime } from "./components/output/relative-time.js";
@@ -154,6 +156,7 @@ import type { Slider } from "./components/forms/slider.js";
 import type { SpinButton } from "./components/forms/spin-button.js";
 import type { Spinner } from "./components/feedback/spinner.js";
 import type { SplitView } from "./components/layout/split-view.js";
+import type { StackedBarChart } from "./patterns/insights/stacked-bar-chart.js";
 import type { StatusIcon } from "./components/feedback/status-icon.js";
 import type { Switch } from "./components/forms/switch.js";
 import type { Table } from "./components/collections/table.js";
@@ -252,6 +255,7 @@ declare global {
     "box-fieldset": Fieldset;
     "box-file-request-builder": FileRequestBuilder;
     "box-filter-bar": FilterBar;
+    "box-findings-disclosure": FindingsDisclosure;
     "box-flow-builder": FlowBuilder;
     "box-flow-card": FlowCard;
     "box-flow-spine": FlowSpine;
@@ -306,6 +310,7 @@ declare global {
     "box-progress-steps": ProgressSteps;
     "box-provenance-strip": ProvenanceStrip;
     "box-radio-group": RadioGroup;
+    "box-range-chart": RangeChart;
     "box-range-slider": RangeSlider;
     "box-rating": Rating;
     "box-relative-time": RelativeTime;
@@ -330,6 +335,7 @@ declare global {
     "box-spin-button": SpinButton;
     "box-spinner": Spinner;
     "box-split-view": SplitView;
+    "box-stacked-bar-chart": StackedBarChart;
     "box-status-icon": StatusIcon;
     "box-switch": Switch;
     "box-table": Table;
@@ -430,6 +436,7 @@ export type BoxElementTagName =
   | "box-fieldset"
   | "box-file-request-builder"
   | "box-filter-bar"
+  | "box-findings-disclosure"
   | "box-flow-builder"
   | "box-flow-card"
   | "box-flow-spine"
@@ -484,6 +491,7 @@ export type BoxElementTagName =
   | "box-progress-steps"
   | "box-provenance-strip"
   | "box-radio-group"
+  | "box-range-chart"
   | "box-range-slider"
   | "box-rating"
   | "box-relative-time"
@@ -508,6 +516,7 @@ export type BoxElementTagName =
   | "box-spin-button"
   | "box-spinner"
   | "box-split-view"
+  | "box-stacked-bar-chart"
   | "box-status-icon"
   | "box-switch"
   | "box-table"

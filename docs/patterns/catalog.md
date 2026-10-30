@@ -328,10 +328,13 @@ have to come back to:
 ### Governance (compositions)
 
 - `governance-panel` — **built**
+- [`findings-disclosure`](./findings-disclosure.md) — **built**
 
 ### Insights (compositions)
 
 - `bar-chart` — **built**
+- [`stacked-bar-chart`](./analytic-charts.md#stacked-composition-601) — **built**
+- [`range-chart`](./analytic-charts.md#range-bounds-602) — **built**
 - `box-plot` — **built**
 - `chart-panel` — **built**
 - `distribution-timeline` — **built**

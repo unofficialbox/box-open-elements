@@ -1,3 +1,6 @@
+import { NumericLineView, type LineChartSeries, type LineChartMarker } from "./numeric-line-view.js";
+import { chartJson, formatAnalyticValue } from "./analytic-shared.js";
+export type { LineChartSeries, LineChartMarker, NumericLinePoint } from "./numeric-line-view.js";
 import { ChartPresentation, chartDomain, presentationAttributes, presentationMarkup, presentationFooter, type ChartInspection } from "./chart-presentation.js";
 import { syncKeyedChildren } from "../internal/keyed-children.js";
 import { chartHeader, syncChartHeader, syncChartLegend, bindChartEvents, syncChartPoints } from "./chart-content.js";
@@ -62,7 +65,7 @@ const elementStyles = chartStyles + `
 export class LineChart extends BaseElement {
   static readonly tagName: string = DEFAULT_TAG_NAME;
   static get observedAttributes(): string[] {
-    return [...presentationAttributes, "actions", "legend", "message", "points", "summary", "timeframe", "heading"];
+    return ["series", "markers", "x-scale", "y-scale", "y-label", "series-tokens", ...presentationAttributes, "actions", "legend", "message", "points", "summary", "timeframe", "heading"];
   }
   private presentation = new ChartPresentation(this, () => this.update(), () => this.emitSelectionCleared());
   get selectedId(): string | null { return this.getAttribute("selected-id"); }
@@ -219,6 +222,26 @@ export class LineChart extends BaseElement {
     );
   }
 
+  private numericView?: NumericLineView;
+  private numericXFormatter: ((value:number)=>string)|null=null;
+  private numericYFormatter: ((value:number)=>string)|null=null;
+  get series():LineChartSeries[]{const data=chartJson<unknown>(this,"series",[]);return Array.isArray(data)?data as LineChartSeries[]:[];}
+  set series(value:LineChartSeries[]){this.setAttribute("series",JSON.stringify(value));}
+  get markers():LineChartMarker[]{const data=chartJson<unknown>(this,"markers",[]);return Array.isArray(data)?data as LineChartMarker[]:[];}
+  set markers(value:LineChartMarker[]){this.setAttribute("markers",JSON.stringify(value));}
+  get xScale():"linear"|"log"{return this.getAttribute("x-scale")==="log"?"log":"linear";}
+  set xScale(value:"linear"|"log"){this.setAttribute("x-scale",value);}
+  get yScale():"linear"|"log"{return this.getAttribute("y-scale")==="log"?"log":"linear";}
+  set yScale(value:"linear"|"log"){this.setAttribute("y-scale",value);}
+  get yLabel():string{return this.getAttribute("y-label")??this.unit;}
+  set yLabel(value:string){this.setAttribute("y-label",value);}
+  get xFormat():(value:number)=>string{return this.numericXFormatter??formatAnalyticValue;}
+  set xFormat(value:(value:number)=>string){this.numericXFormatter=value;this.update();}
+  get yFormat():(value:number)=>string{return this.numericYFormatter??formatAnalyticValue;}
+  set yFormat(value:(value:number)=>string){this.numericYFormatter=value;this.update();}
+  get seriesTokens():Record<string,string>{const data=chartJson<unknown>(this,"series-tokens",{});return data&&typeof data==="object"&&!Array.isArray(data)?data as Record<string,string>:{};}
+  set seriesTokens(value:Record<string,string>){this.setAttribute("series-tokens",JSON.stringify(value));}
+
   private pointWidthRem(): number { return this.getBoundingClientRect().width <= 480 ? 2.75 : 3.5; }
 
   private xPosition(index: number, count: number): number {
@@ -279,7 +302,7 @@ export class LineChart extends BaseElement {
     this.shadowRoot!.innerHTML = `<style>${elementStyles}[hidden]{display:none!important}</style><div part="content-host"><article part="panel">${chartHeader}${presentationMarkup}
       <div part="visual" hidden><div part="axis" aria-hidden="true"></div><svg part="chart" viewBox="0 0 100 56" preserveAspectRatio="none" role="img">
       <g part="grid"></g><path part="area"></path><path part="path"></path><g part="dots"></g></svg><div part="points" role="list"></div></div>
-      <div part="empty">No line-chart data available.</div><div part="legend" hidden></div>${presentationFooter}</article></div>`;
+      <div part="empty">No line-chart data available.</div><div part="legend" hidden></div>${presentationFooter}</article></div><div part="series-host" hidden></div>`;
   }
   protected setupListeners(): void {
     this.presentation.setup();
@@ -288,6 +311,10 @@ export class LineChart extends BaseElement {
   protected update(): void {
     if(!this.isRendered)return;
     const root=this.shadowRoot!;
+    const numeric=this.hasAttribute("series");
+    root.querySelector<HTMLElement>('[part="content-host"]')!.hidden=numeric;
+    const seriesHost=root.querySelector<HTMLElement>('[part="series-host"]')!;seriesHost.hidden=!numeric;
+    if(numeric){this.numericView??=new NumericLineView(seriesHost,this);this.numericView.update();return;}
     root.querySelector<HTMLElement>('[part="visual"]')!.dataset.dense=String(this.points.length > 8);
     root.querySelector<HTMLElement>('[part="visual"]')!.style.setProperty("--point-size", `${this.pointWidthRem()}rem`);
     root.querySelector<HTMLElement>('[part="visual"]')!.style.setProperty("--plot-min", `${this.points.length * this.pointWidthRem()}rem`);

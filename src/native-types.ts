@@ -56,7 +56,7 @@ export interface BoxElementPropertyKeys {
   "box-date-field": "clearable" | "description" | "disabled" | "errorMessage" | "hideLabel" | "invalid" | "label" | "max" | "min" | "name" | "required" | "value";
   "box-dialog": "confirmBusy" | "confirmBusyLabel" | "confirmDisabled" | "confirmLabel" | "confirmTone" | "description" | "heading" | "open" | "size";
   "box-diff-viewer": "afterLabel" | "afterText" | "beforeLabel" | "beforeText" | "heading" | "mode";
-  "box-distribution-timeline": "description" | "embedded" | "format" | "heading" | "headingLevel" | "hideNote" | "hideSamples" | "maxSamples" | "points" | "scale" | "timeUnit" | "unit";
+  "box-distribution-timeline": "description" | "embedded" | "format" | "heading" | "headingLevel" | "hideNote" | "hideSamples" | "maxSamples" | "points" | "scale" | "showSamples" | "timeUnit" | "unit";
   "box-divider": "label" | "orientation";
   "box-document-list": "blocks" | "items" | "labels" | "selectableDocuments";
   "box-donut-chart": "actions" | "categoryLabel" | "heading" | "message" | "note" | "readOnly" | "segments" | "state" | "statusMessage" | "summary" | "timeframe" | "total" | "totalLabel" | "unit";
@@ -78,6 +78,7 @@ export interface BoxElementPropertyKeys {
   "box-fieldset": "description" | "disabled" | "hideLabel" | "label" | "labelCase";
   "box-file-request-builder": "fields" | "heading" | "message" | "settings" | "value";
   "box-filter-bar": "filterOptions" | "filters" | "label" | "query" | "sortOptions" | "sortValue" | "viewOptions" | "viewValue";
+  "box-findings-disclosure": "corrections" | "expanded" | "findings" | "heading" | "headingLevel" | "leadCount" | "limits";
   "box-flow-builder": "catalog" | "endLabel" | "headingLevel" | "model" | "nodes" | "renderInspector" | "selected" | "startLabel";
   "box-flow-card": "catalog" | "figure" | "invalid" | "model" | "node" | "selected";
   "box-flow-spine": "catalog" | "endLabel" | "figures" | "headingLevel" | "invalid" | "model" | "nodes" | "selected" | "startLabel";
@@ -101,7 +102,7 @@ export interface BoxElementPropertyKeys {
   "box-item-details-panel": "actions" | "eyebrow" | "heading" | "message" | "meta" | "owner" | "status";
   "box-item-form": "disabled" | "fields" | "label" | "mode" | "submitLabel" | "value";
   "box-kind-picker": "catalog" | "searchable" | "variant";
-  "box-line-chart": "actions" | "domain" | "heading" | "legend" | "message" | "note" | "points" | "selectedId" | "state" | "statusMessage" | "summary" | "timeframe" | "unit" | "xLabel";
+  "box-line-chart": "actions" | "domain" | "heading" | "legend" | "markers" | "message" | "note" | "points" | "selectedId" | "series" | "seriesTokens" | "state" | "statusMessage" | "summary" | "timeframe" | "unit" | "xFormat" | "xLabel" | "xScale" | "yFormat" | "yLabel" | "yScale";
   "box-lineage-graph": "arrows" | "heading" | "nodes";
   "box-link-button": "href" | "label" | "rel" | "target" | "tone";
   "box-menu": "disabled" | "items" | "label";
@@ -132,6 +133,7 @@ export interface BoxElementPropertyKeys {
   "box-progress-steps": "compact" | "items" | "label" | "value";
   "box-provenance-strip": "nodes";
   "box-radio-group": "description" | "disabled" | "errorMessage" | "hideLabel" | "invalid" | "label" | "name" | "options" | "required" | "value";
+  "box-range-chart": "description" | "format" | "heading" | "rows" | "seriesTokens" | "state" | "statusMessage" | "unit";
   "box-range-slider": "description" | "disabled" | "end" | "errorMessage" | "hideLabel" | "invalid" | "label" | "max" | "min" | "name" | "required" | "start" | "step";
   "box-rating": "description" | "disabled" | "errorMessage" | "hideLabel" | "invalid" | "label" | "max" | "name" | "required" | "value";
   "box-relative-time": "locale" | "numeric" | "referenceTime" | "value";
@@ -156,6 +158,7 @@ export interface BoxElementPropertyKeys {
   "box-spin-button": "description" | "disabled" | "errorMessage" | "hideLabel" | "invalid" | "label" | "max" | "min" | "name" | "required" | "step" | "value";
   "box-spinner": "label" | "size";
   "box-split-view": "collapse" | "detailOpen" | "label" | "ratio" | "resizable";
+  "box-stacked-bar-chart": "bars" | "description" | "format" | "heading" | "orientation" | "seriesTokens" | "state" | "statusMessage" | "unit";
   "box-status-icon": "kind" | "label";
   "box-switch": "checked" | "description" | "disabled" | "errorMessage" | "hideLabel" | "invalid" | "label" | "name" | "required" | "value";
   "box-table": "columns" | "emptyText" | "errorText" | "label" | "loading" | "rowHeight" | "rows" | "selectedIds" | "selectionMode" | "stackedLayout" | "virtualize";
@@ -350,7 +353,9 @@ export interface BoxElementEventMap {
   "box-diff-viewer": {
     "change-focused": CustomEvent<{ index: number; total: number; }>;
   };
-  "box-distribution-timeline": {};
+  "box-distribution-timeline": {
+    "samples-toggled": CustomEvent<{ visible: boolean; }>;
+  };
   "box-divider": {};
   "box-document-list": {
     "document-selected": CustomEvent<{ id: string | undefined; }>;
@@ -401,6 +406,9 @@ export interface BoxElementEventMap {
   "box-filter-bar": {
     "search": CustomEvent<{ value: ({ filters: string[]; query: string; sort: string; view: string; }); }>;
     "value-changed": CustomEvent<{ value: ({ filters: string[]; query: string; sort: string; view: string; }); }>;
+  };
+  "box-findings-disclosure": {
+    "expanded-changed": CustomEvent<{ expanded: boolean; }>;
   };
   "box-flow-builder": {
     "flow-changed": CustomEvent<{ nodes: unknown[]; node: unknown; reason: string; }>;
@@ -568,6 +576,7 @@ export interface BoxElementEventMap {
   "box-radio-group": {
     "value-changed": CustomEvent<{ value: string; }>;
   };
+  "box-range-chart": {};
   "box-range-slider": {
     "value-changed": CustomEvent<{ start: number; end: number; }>;
   };
@@ -634,6 +643,7 @@ export interface BoxElementEventMap {
     "detail-dismissed": CustomEvent<import("./components/layout/split-view.js").SplitViewDetailDismissedDetail>;
     "ratio-changed": CustomEvent<{ ratio: number; }>;
   };
+  "box-stacked-bar-chart": {};
   "box-status-icon": {};
   "box-switch": {
     "checked-changed": CustomEvent<{ checked: boolean; }>;
@@ -2131,6 +2141,41 @@ declare module "./patterns/diff/diff-viewer.js" {
   }
 }
 
+declare module "./patterns/insights/distribution-timeline.js" {
+  interface DistributionTimeline {
+    addEventListener<K extends keyof BoxElementEventMap["box-distribution-timeline"] & string>(
+      type: K,
+      listener: (this: DistributionTimeline, event: BoxElementEventMap["box-distribution-timeline"][K]) => void,
+      options?: boolean | AddEventListenerOptions,
+    ): void;
+    addEventListener<K extends keyof HTMLElementEventMap>(
+      type: K,
+      listener: (this: DistributionTimeline, event: HTMLElementEventMap[K]) => void,
+      options?: boolean | AddEventListenerOptions,
+    ): void;
+    addEventListener(
+      type: string,
+      listener: EventListenerOrEventListenerObject | null,
+      options?: boolean | AddEventListenerOptions,
+    ): void;
+    removeEventListener<K extends keyof BoxElementEventMap["box-distribution-timeline"] & string>(
+      type: K,
+      listener: (this: DistributionTimeline, event: BoxElementEventMap["box-distribution-timeline"][K]) => void,
+      options?: boolean | EventListenerOptions,
+    ): void;
+    removeEventListener<K extends keyof HTMLElementEventMap>(
+      type: K,
+      listener: (this: DistributionTimeline, event: HTMLElementEventMap[K]) => void,
+      options?: boolean | EventListenerOptions,
+    ): void;
+    removeEventListener(
+      type: string,
+      listener: EventListenerOrEventListenerObject | null,
+      options?: boolean | EventListenerOptions,
+    ): void;
+  }
+}
+
 declare module "./components/collections/document-list.js" {
   interface DocumentList {
     addEventListener<K extends keyof BoxElementEventMap["box-document-list"] & string>(
@@ -2576,6 +2621,41 @@ declare module "./patterns/search/filter-bar.js" {
     removeEventListener<K extends keyof HTMLElementEventMap>(
       type: K,
       listener: (this: FilterBar, event: HTMLElementEventMap[K]) => void,
+      options?: boolean | EventListenerOptions,
+    ): void;
+    removeEventListener(
+      type: string,
+      listener: EventListenerOrEventListenerObject | null,
+      options?: boolean | EventListenerOptions,
+    ): void;
+  }
+}
+
+declare module "./patterns/governance/findings-disclosure.js" {
+  interface FindingsDisclosure {
+    addEventListener<K extends keyof BoxElementEventMap["box-findings-disclosure"] & string>(
+      type: K,
+      listener: (this: FindingsDisclosure, event: BoxElementEventMap["box-findings-disclosure"][K]) => void,
+      options?: boolean | AddEventListenerOptions,
+    ): void;
+    addEventListener<K extends keyof HTMLElementEventMap>(
+      type: K,
+      listener: (this: FindingsDisclosure, event: HTMLElementEventMap[K]) => void,
+      options?: boolean | AddEventListenerOptions,
+    ): void;
+    addEventListener(
+      type: string,
+      listener: EventListenerOrEventListenerObject | null,
+      options?: boolean | AddEventListenerOptions,
+    ): void;
+    removeEventListener<K extends keyof BoxElementEventMap["box-findings-disclosure"] & string>(
+      type: K,
+      listener: (this: FindingsDisclosure, event: BoxElementEventMap["box-findings-disclosure"][K]) => void,
+      options?: boolean | EventListenerOptions,
+    ): void;
+    removeEventListener<K extends keyof HTMLElementEventMap>(
+      type: K,
+      listener: (this: FindingsDisclosure, event: HTMLElementEventMap[K]) => void,
       options?: boolean | EventListenerOptions,
     ): void;
     removeEventListener(

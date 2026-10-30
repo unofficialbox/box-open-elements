@@ -917,7 +917,7 @@ export class Table extends BaseElement {
       }
       return;
     }
-    if (event.key === " ") {
+    if (event.key === " " || event.key === "Enter") {
       event.preventDefault();
       this.activateRow(index, { toggle: this.selectionMode === "multiple" });
       return;

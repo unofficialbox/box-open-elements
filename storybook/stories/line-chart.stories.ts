@@ -1,3 +1,4 @@
+import {numericLineHtml} from "../fixtures/analytic-charts.js";
 import { periodChartHtml, periodVariants } from "../fixtures/insights.js";
 import type { StoryModule } from "../metadata.js";
 
@@ -10,6 +11,12 @@ const lineChart: StoryModule = {
     docsDescription: "Pass JSON `points`, `legend`, and `actions`; use string attributes for heading, summary, timeframe, and message.",
     sourceSnippet: periodChartHtml("line-chart"),
     referenceRows: [
+      {kind:"property",name:"series",type:"LineChartSeries[]",description:"Opt into numeric multi-series mode. Ordered x/y points, stable IDs and optional host summaries; remove the attribute to return to categorical points."},
+      {kind:"property",name:"markers",type:"LineChartMarker[]",description:"Labelled x/y references supplied by the host, including crossover markers."},
+      {kind:"attribute",name:"x-scale",type:"linear | log",description:"Numeric x spacing; logarithmic axes require positive values."},
+      {kind:"attribute",name:"y-scale",type:"linear | log",description:"Shared y scale; logarithmic axes require positive values."},
+      {kind:"property",name:"xFormat / yFormat",type:"(value: number) => string",description:"Independent host axis/value formatters."},
+      {kind:"property",name:"seriesTokens",type:"Record<string, string>",description:"Stable series IDs mapped to CSS token names."},
       { kind: "attribute", name: "selected-id", type: "string", description: "Selected point ID. Clear selection returns inspection to the latest interval." },
       { kind: "attribute", name: "unit", type: "string", description: "Visible value-axis unit." },
       { kind: "attribute", name: "x-label", type: "string", description: "Category/interval axis label." },
@@ -29,7 +36,7 @@ const lineChart: StoryModule = {
       { kind: "event", name: "action", description: "Emitted when an action is selected." },
     ],
   },
-  variants: periodVariants("line-chart"),
+  variants: [...periodVariants("line-chart"),{name:"Numeric series",html:numericLineHtml},{name:"Logarithmic series",html:numericLineHtml.replace('<box-line-chart ','<box-line-chart x-scale="log" y-scale="log" ')}],
 };
 
 export default lineChart;

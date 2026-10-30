@@ -1,6 +1,201 @@
 {
   "stories": [
     {
+      "id": "stacked-bar-chart",
+      "tag": "box-stacked-bar-chart",
+      "title": "Patterns/Insights/Stacked Bar Chart",
+      "category": "Insights",
+      "shortDescription": "Compare what each total is made of.",
+      "docsDescription": "Ordered segments share a scale, category legend and exact-value table. Tiny segments remain inspectable; shares are rounded and no absent amount is inferred.",
+      "sourceSnippet": "<box-stacked-bar-chart heading=\"Where tokens go\" description=\"Illustrative composition per request · totals share one scale\" unit=\"tokens\" bars='[{\"id\":\"coding\",\"label\":\"Coding agent · document in context\",\"segments\":[{\"id\":\"tools\",\"label\":\"Tool definitions\",\"value\":20237},{\"id\":\"document\",\"label\":\"Document payload\",\"value\":18624},{\"id\":\"retries\",\"label\":\"Retries\",\"value\":117}]},{\"id\":\"extraction\",\"label\":\"Direct extraction\",\"segments\":[{\"id\":\"tools\",\"label\":\"Tool definitions\",\"value\":539},{\"id\":\"document\",\"label\":\"Document payload\",\"value\":2400},{\"id\":\"retries\",\"label\":\"Retries\",\"value\":0}]},{\"id\":\"cached\",\"label\":\"Agent with cached context\",\"segments\":[{\"id\":\"tools\",\"label\":\"Tool definitions\",\"value\":539},{\"id\":\"document\",\"label\":\"Document payload\",\"value\":8800},{\"id\":\"retries\",\"label\":\"Retries\",\"value\":42}]}]'></box-stacked-bar-chart>",
+      "referenceRows": [
+        {
+          "kind": "property",
+          "name": "bars",
+          "type": "StackedBar[]",
+          "description": "Stable bar IDs, labels, optional totalLabel, and ordered segments with ID, label, value and optional tone."
+        },
+        {
+          "kind": "attribute",
+          "name": "orientation",
+          "type": "horizontal | vertical",
+          "description": "Vertical columns on wide hosts; narrow layouts keep labels above horizontal bars."
+        },
+        {
+          "kind": "property",
+          "name": "format",
+          "type": "(value: number) => string",
+          "description": "Host formatter for ticks, amounts and totals."
+        },
+        {
+          "kind": "property",
+          "name": "seriesTokens",
+          "type": "Record<string, string>",
+          "description": "Map stable segment IDs to CSS token names for color consistency across charts."
+        },
+        {
+          "kind": "attribute",
+          "name": "state",
+          "type": "ready | loading | error | partial | stale",
+          "description": "Data availability, separate from a measured zero."
+        },
+        {
+          "kind": "attribute",
+          "name": "status-message",
+          "type": "string",
+          "description": "Host-supplied state detail, including cache time or coverage."
+        }
+      ],
+      "variants": [
+        {
+          "name": "Default",
+          "html": "<box-stacked-bar-chart heading=\"Where tokens go\" description=\"Illustrative composition per request · totals share one scale\" unit=\"tokens\" bars='[{\"id\":\"coding\",\"label\":\"Coding agent · document in context\",\"segments\":[{\"id\":\"tools\",\"label\":\"Tool definitions\",\"value\":20237},{\"id\":\"document\",\"label\":\"Document payload\",\"value\":18624},{\"id\":\"retries\",\"label\":\"Retries\",\"value\":117}]},{\"id\":\"extraction\",\"label\":\"Direct extraction\",\"segments\":[{\"id\":\"tools\",\"label\":\"Tool definitions\",\"value\":539},{\"id\":\"document\",\"label\":\"Document payload\",\"value\":2400},{\"id\":\"retries\",\"label\":\"Retries\",\"value\":0}]},{\"id\":\"cached\",\"label\":\"Agent with cached context\",\"segments\":[{\"id\":\"tools\",\"label\":\"Tool definitions\",\"value\":539},{\"id\":\"document\",\"label\":\"Document payload\",\"value\":8800},{\"id\":\"retries\",\"label\":\"Retries\",\"value\":42}]}]'></box-stacked-bar-chart>"
+        },
+        {
+          "name": "Vertical",
+          "html": "<box-stacked-bar-chart orientation=\"vertical\" heading=\"Where tokens go\" description=\"Illustrative composition per request · totals share one scale\" unit=\"tokens\" bars='[{\"id\":\"coding\",\"label\":\"Coding agent · document in context\",\"segments\":[{\"id\":\"tools\",\"label\":\"Tool definitions\",\"value\":20237},{\"id\":\"document\",\"label\":\"Document payload\",\"value\":18624},{\"id\":\"retries\",\"label\":\"Retries\",\"value\":117}]},{\"id\":\"extraction\",\"label\":\"Direct extraction\",\"segments\":[{\"id\":\"tools\",\"label\":\"Tool definitions\",\"value\":539},{\"id\":\"document\",\"label\":\"Document payload\",\"value\":2400},{\"id\":\"retries\",\"label\":\"Retries\",\"value\":0}]},{\"id\":\"cached\",\"label\":\"Agent with cached context\",\"segments\":[{\"id\":\"tools\",\"label\":\"Tool definitions\",\"value\":539},{\"id\":\"document\",\"label\":\"Document payload\",\"value\":8800},{\"id\":\"retries\",\"label\":\"Retries\",\"value\":42}]}]'></box-stacked-bar-chart>"
+        },
+        {
+          "name": "Loading",
+          "html": "<box-stacked-bar-chart state=\"loading\" heading=\"Where tokens go\" description=\"Illustrative composition per request · totals share one scale\" unit=\"tokens\" bars='[{\"id\":\"coding\",\"label\":\"Coding agent · document in context\",\"segments\":[{\"id\":\"tools\",\"label\":\"Tool definitions\",\"value\":20237},{\"id\":\"document\",\"label\":\"Document payload\",\"value\":18624},{\"id\":\"retries\",\"label\":\"Retries\",\"value\":117}]},{\"id\":\"extraction\",\"label\":\"Direct extraction\",\"segments\":[{\"id\":\"tools\",\"label\":\"Tool definitions\",\"value\":539},{\"id\":\"document\",\"label\":\"Document payload\",\"value\":2400},{\"id\":\"retries\",\"label\":\"Retries\",\"value\":0}]},{\"id\":\"cached\",\"label\":\"Agent with cached context\",\"segments\":[{\"id\":\"tools\",\"label\":\"Tool definitions\",\"value\":539},{\"id\":\"document\",\"label\":\"Document payload\",\"value\":8800},{\"id\":\"retries\",\"label\":\"Retries\",\"value\":42}]}]'></box-stacked-bar-chart>"
+        },
+        {
+          "name": "No observations",
+          "html": "<box-stacked-bar-chart heading=\"Where tokens go\"></box-stacked-bar-chart>"
+        }
+      ]
+    },
+    {
+      "id": "range-chart",
+      "tag": "box-range-chart",
+      "title": "Patterns/Insights/Range Chart",
+      "category": "Insights",
+      "shortDescription": "Show uncertainty as explicit low-to-high spans.",
+      "docsDescription": "Capped ranges share an axis. Supply a point only when defensible; zero-width intervals remain ticks. Compare named ranges within each row and inspect the exact bounds in a native table.",
+      "sourceSnippet": "<box-range-chart heading=\"Estimated savings\" description=\"Illustrative bounds, not measured savings. Dots mark supplied estimates; no midpoint is inferred.\" unit=\"%\" rows='[{\"id\":\"cache\",\"label\":\"Prompt caching\",\"ranges\":[{\"id\":\"before\",\"label\":\"Before\",\"low\":12,\"high\":58},{\"id\":\"after\",\"label\":\"After\",\"low\":8,\"high\":32,\"value\":18}]},{\"id\":\"tools\",\"label\":\"Tool selection\",\"ranges\":[{\"id\":\"before\",\"label\":\"Before\",\"low\":20,\"high\":48},{\"id\":\"after\",\"label\":\"After\",\"low\":14,\"high\":26}]},{\"id\":\"known\",\"label\":\"Known reduction\",\"ranges\":[{\"id\":\"before\",\"label\":\"Before\",\"low\":10,\"high\":10},{\"id\":\"after\",\"label\":\"After\",\"low\":12,\"high\":12}]}]'></box-range-chart>",
+      "referenceRows": [
+        {
+          "kind": "property",
+          "name": "rows",
+          "type": "RangeChartRow[]",
+          "description": "ID and label with low/high and optional value, or named ranges for same-row comparisons."
+        },
+        {
+          "kind": "property",
+          "name": "format",
+          "type": "(value: number) => string",
+          "description": "Host formatter for bounds and scale ticks."
+        },
+        {
+          "kind": "property",
+          "name": "seriesTokens",
+          "type": "Record<string, string>",
+          "description": "Map range series IDs to CSS token names."
+        },
+        {
+          "kind": "attribute",
+          "name": "unit",
+          "type": "string",
+          "description": "Unit for all bounds, widths and supplied points."
+        },
+        {
+          "kind": "attribute",
+          "name": "state",
+          "type": "ready | loading | error | partial | stale",
+          "description": "Data availability; no cached geometry during loading/error."
+        }
+      ],
+      "variants": [
+        {
+          "name": "Default",
+          "html": "<box-range-chart heading=\"Estimated savings\" description=\"Illustrative bounds, not measured savings. Dots mark supplied estimates; no midpoint is inferred.\" unit=\"%\" rows='[{\"id\":\"cache\",\"label\":\"Prompt caching\",\"ranges\":[{\"id\":\"before\",\"label\":\"Before\",\"low\":12,\"high\":58},{\"id\":\"after\",\"label\":\"After\",\"low\":8,\"high\":32,\"value\":18}]},{\"id\":\"tools\",\"label\":\"Tool selection\",\"ranges\":[{\"id\":\"before\",\"label\":\"Before\",\"low\":20,\"high\":48},{\"id\":\"after\",\"label\":\"After\",\"low\":14,\"high\":26}]},{\"id\":\"known\",\"label\":\"Known reduction\",\"ranges\":[{\"id\":\"before\",\"label\":\"Before\",\"low\":10,\"high\":10},{\"id\":\"after\",\"label\":\"After\",\"low\":12,\"high\":12}]}]'></box-range-chart>"
+        },
+        {
+          "name": "Single series · no inferred midpoint",
+          "html": "<box-range-chart heading=\"Savings bounds\" unit=\"%\" rows='[{\"id\":\"a\",\"label\":\"Prompt caching\",\"low\":12,\"high\":58},{\"id\":\"b\",\"label\":\"Known value\",\"low\":35,\"high\":35}]'></box-range-chart>"
+        },
+        {
+          "name": "Loading",
+          "html": "<box-range-chart state=\"loading\" heading=\"Estimated savings\" description=\"Illustrative bounds, not measured savings. Dots mark supplied estimates; no midpoint is inferred.\" unit=\"%\" rows='[{\"id\":\"cache\",\"label\":\"Prompt caching\",\"ranges\":[{\"id\":\"before\",\"label\":\"Before\",\"low\":12,\"high\":58},{\"id\":\"after\",\"label\":\"After\",\"low\":8,\"high\":32,\"value\":18}]},{\"id\":\"tools\",\"label\":\"Tool selection\",\"ranges\":[{\"id\":\"before\",\"label\":\"Before\",\"low\":20,\"high\":48},{\"id\":\"after\",\"label\":\"After\",\"low\":14,\"high\":26}]},{\"id\":\"known\",\"label\":\"Known reduction\",\"ranges\":[{\"id\":\"before\",\"label\":\"Before\",\"low\":10,\"high\":10},{\"id\":\"after\",\"label\":\"After\",\"low\":12,\"high\":12}]}]'></box-range-chart>"
+        },
+        {
+          "name": "No observations",
+          "html": "<box-range-chart heading=\"Savings bounds\"></box-range-chart>"
+        }
+      ]
+    },
+    {
+      "id": "findings-disclosure",
+      "tag": "box-findings-disclosure",
+      "title": "Patterns/Governance/Findings Disclosure",
+      "category": "Governance",
+      "shortDescription": "Keep corrections visible when supporting evidence is collapsed.",
+      "docsDescription": "Lead findings remain visible. The disclosure counts additional findings, corrections and limits, while corrected field names always remain discoverable.",
+      "sourceSnippet": "<box-findings-disclosure heading=\"What this comparison establishes\" findings='[\"The cached agent reduced repeated context for this illustrative sample.\",\"Tool definitions account for 52% of the uncached coding-agent total.\",\"The direct extraction estimate remains flat across the sampled document sizes.\"]' corrections='[{\"field\":\"Cached token count\",\"was\":\"539 total tokens\",\"now\":\"539 tool-definition tokens plus document payload\",\"why\":\"The first estimate omitted the document payload.\"},{\"field\":\"Comparison scope\",\"was\":\"All requests\",\"now\":\"The three illustrative lanes shown here\",\"why\":\"This example does not establish performance for other workloads.\"}]' limits='[\"Illustrative data; not a measured production benchmark.\"]'></box-findings-disclosure>",
+      "referenceRows": [
+        {
+          "kind": "property",
+          "name": "findings",
+          "type": "string[]",
+          "description": "Conclusions, in host-defined order."
+        },
+        {
+          "kind": "property",
+          "name": "corrections",
+          "type": "FindingCorrection[]",
+          "description": "Each corrected field with was, now and why text."
+        },
+        {
+          "kind": "property",
+          "name": "limits",
+          "type": "string[]",
+          "description": "What these conclusions do not establish."
+        },
+        {
+          "kind": "attribute",
+          "name": "lead-count",
+          "type": "number",
+          "description": "Number of findings shown before the toggle; default 1."
+        },
+        {
+          "kind": "attribute",
+          "name": "expanded",
+          "type": "boolean",
+          "description": "Controlled disclosure state."
+        },
+        {
+          "kind": "event",
+          "name": "expanded-changed",
+          "type": "{ expanded: boolean }",
+          "description": "User toggled supporting detail."
+        },
+        {
+          "kind": "attribute",
+          "name": "heading-level",
+          "type": "1–6",
+          "description": "Native heading level; default 2."
+        }
+      ],
+      "variants": [
+        {
+          "name": "Default",
+          "html": "<box-findings-disclosure heading=\"What this comparison establishes\" findings='[\"The cached agent reduced repeated context for this illustrative sample.\",\"Tool definitions account for 52% of the uncached coding-agent total.\",\"The direct extraction estimate remains flat across the sampled document sizes.\"]' corrections='[{\"field\":\"Cached token count\",\"was\":\"539 total tokens\",\"now\":\"539 tool-definition tokens plus document payload\",\"why\":\"The first estimate omitted the document payload.\"},{\"field\":\"Comparison scope\",\"was\":\"All requests\",\"now\":\"The three illustrative lanes shown here\",\"why\":\"This example does not establish performance for other workloads.\"}]' limits='[\"Illustrative data; not a measured production benchmark.\"]'></box-findings-disclosure>"
+        },
+        {
+          "name": "Expanded",
+          "html": "<box-findings-disclosure expanded heading=\"What this comparison establishes\" findings='[\"The cached agent reduced repeated context for this illustrative sample.\",\"Tool definitions account for 52% of the uncached coding-agent total.\",\"The direct extraction estimate remains flat across the sampled document sizes.\"]' corrections='[{\"field\":\"Cached token count\",\"was\":\"539 total tokens\",\"now\":\"539 tool-definition tokens plus document payload\",\"why\":\"The first estimate omitted the document payload.\"},{\"field\":\"Comparison scope\",\"was\":\"All requests\",\"now\":\"The three illustrative lanes shown here\",\"why\":\"This example does not establish performance for other workloads.\"}]' limits='[\"Illustrative data; not a measured production benchmark.\"]'></box-findings-disclosure>"
+        },
+        {
+          "name": "Nothing to collapse",
+          "html": "<box-findings-disclosure findings='[\"The requested scan completed.\"]'></box-findings-disclosure>"
+        },
+        {
+          "name": "Corrections only",
+          "html": "<box-findings-disclosure corrections='[{\"field\":\"Scope\",\"was\":\"All users\",\"now\":\"Connected users\",\"why\":\"Only connected users were sampled.\"}]'></box-findings-disclosure>"
+        }
+      ]
+    },
+    {
       "id": "status-icon",
       "tag": "box-status-icon",
       "title": "Components/Feedback/Status Icon",
@@ -1273,7 +1468,7 @@
       "title": "Components/Collections/Table",
       "category": "Collections",
       "shortDescription": "A semantic, selectable data table.",
-      "docsDescription": "Columns and rows accept JSON attributes or JavaScript properties. `selection-mode=\"single|multiple\"` enables row selection: click, Ctrl/Cmd-click to toggle, Shift-click for a range; Arrow/Home/End move focus, Space toggles, Shift+Arrow extends, Ctrl/Cmd+A selects all, Escape clears. Sorting and selection are controlled: sortable headers emit `sort` with `{key, direction}`; the host reorders rows and sets `sort-key`/`sort-direction`. Selection round-trips through `selectedIds` and `selection-changed`.\n\nCells accept plain text, badge and link descriptors; text stays escaped and non-http(s) links render as text. Descriptor links are underlined by default. `hostContent: true` projects host-owned nodes into `cell-<rowId>-<columnKey>` slots; the host supplies accessible names and link cues. Rows with `detail` get an expander and a `detail-<id>` slot. `rows.actions` adds native buttons that emit `row-action` with `{rowId, action, row}` independently of selection. `rows.current: true` marks the viewed record with `aria-current` and a leading marker.\n\n`stacked=\"always\"` always stacks; `stacked=\"auto\"` stacks below a 560px container width. The default list keeps each label beside its value. `stacked-layout=\"grid\"` uses label-over-value comparison cards with adjacent group headings. `stacked-layout=\"compact\"` uses scan rows for run lists with wrapping actions: `columns.compact=\"summary\"` hides only the repeated visible label; `\"hidden\"` omits a consumer-chosen field and its slot at stacked widths. No field is hidden by default. Row headers stay visible, and desktop/list/grid show every column. Only hide secondary fields available through a detail action; avoid hiding a focused control.\n\n`loading`, `error-text` and empty states are stated in words. `virtualize` renders viewport rows with spacers; indices remain absolute and Home/End reach collection ends. Fixed-height windowing is suppressed when rows declare detail/actions, columns use hostContent, or stacked grid/compact layouts are requested. The request stays set, and `renderedWindow` is `null` whenever rendering did not window.",
+      "docsDescription": "Columns and rows accept JSON attributes or JavaScript properties. `selection-mode=\"single|multiple\"` enables row selection: click, Ctrl/Cmd-click to toggle, Shift-click for a range; Arrow/Home/End move focus, Enter/Space select (and toggle in multiple mode), Shift+Arrow extends, Ctrl/Cmd+A selects all, Escape clears. Sorting and selection are controlled: sortable headers emit `sort` with `{key, direction}`; the host reorders rows and sets `sort-key`/`sort-direction`. Selection round-trips through `selectedIds` and `selection-changed`.\n\nCells accept plain text, badge and link descriptors; text stays escaped and non-http(s) links render as text. Descriptor links are underlined by default. `hostContent: true` projects host-owned nodes into `cell-<rowId>-<columnKey>` slots; the host supplies accessible names and link cues. Rows with `detail` get an expander and a `detail-<id>` slot. `rows.actions` adds native buttons that emit `row-action` with `{rowId, action, row}` independently of selection. `rows.current: true` marks the viewed record with `aria-current` and a leading marker.\n\n`stacked=\"always\"` always stacks; `stacked=\"auto\"` stacks below a 560px container width. The default list keeps each label beside its value. `stacked-layout=\"grid\"` uses label-over-value comparison cards with adjacent group headings. `stacked-layout=\"compact\"` uses scan rows for run lists with wrapping actions: `columns.compact=\"summary\"` hides only the repeated visible label; `\"hidden\"` omits a consumer-chosen field and its slot at stacked widths. No field is hidden by default. Row headers stay visible, and desktop/list/grid show every column. Only hide secondary fields available through a detail action; avoid hiding a focused control.\n\n`loading`, `error-text` and empty states are stated in words. `virtualize` renders viewport rows with spacers; indices remain absolute and Home/End reach collection ends. Fixed-height windowing is suppressed when rows declare detail/actions, columns use hostContent, or stacked grid/compact layouts are requested. The request stays set, and `renderedWindow` is `null` whenever rendering did not window.",
       "sourceSnippet": "<box-table label=\"Files\" selection-mode=\"multiple\"></box-table>",
       "referenceRows": [
         {
@@ -5671,8 +5866,8 @@
       "title": "Patterns/Insights/Distribution Timeline",
       "category": "Insights",
       "shortDescription": "Watch one measurement's distribution move over a run.",
-      "docsDescription": "Provide one host-computed summary per interval. The shaded range is minimum to maximum, the band inside it is Q1–Q3, and the line through it is the median. Optional samples draw as dots, thinned to an even spread across the time axis.",
-      "sourceSnippet": "<box-distribution-timeline heading=\"Upload latency\" unit=\"ms\" time-unit=\"s\" points='[{\"at\":0,\"min\":18,\"q1\":31,\"median\":42,\"q3\":58,\"max\":126}]'></box-distribution-timeline>",
+      "docsDescription": "Provide one host-computed summary per interval. Separate interval boxes show Q1–Q3, capped whiskers show minimum–maximum, and a blue line follows the medians. Host-supplied samples are an optional inspection layer, off by default, with bounded thinning across time.",
+      "sourceSnippet": "<box-distribution-timeline heading=\"Upload latency\" description=\"Illustrative run · one summary every 5 seconds\" unit=\"ms\" time-unit=\"s\" points='[{\"at\":0,\"min\":15,\"q1\":29,\"median\":38,\"q3\":50,\"max\":90,\"count\":1180,\"samples\":[42,46,46,49,51,64]},{\"at\":5,\"min\":16,\"q1\":30,\"median\":40,\"q3\":53,\"max\":93,\"count\":1187,\"samples\":[16,27,36,39,41,64]},{\"at\":10,\"min\":16,\"q1\":30,\"median\":41,\"q3\":55,\"max\":95,\"count\":1194,\"samples\":[36,41,75,79,87,92]},{\"at\":15,\"min\":20,\"q1\":34,\"median\":43,\"q3\":58,\"max\":98,\"count\":1201,\"samples\":[22,43,55,69,72,83]},{\"at\":20,\"min\":20,\"q1\":34,\"median\":44,\"q3\":56,\"max\":96,\"count\":1208,\"samples\":[37,40,44,47,53,80]},{\"at\":25,\"min\":21,\"q1\":35,\"median\":46,\"q3\":59,\"max\":99,\"count\":1215,\"samples\":[24,44,71,86,95,97]},{\"at\":30,\"min\":28,\"q1\":42,\"median\":51,\"q3\":65,\"max\":133,\"count\":1222,\"samples\":[44,52,60,76,83,111]},{\"at\":35,\"min\":28,\"q1\":42,\"median\":52,\"q3\":67,\"max\":135,\"count\":1229,\"samples\":[30,35,81,103,106,118]},{\"at\":40,\"min\":26,\"q1\":40,\"median\":51,\"q3\":63,\"max\":103,\"count\":1236,\"samples\":[61,62,64,73,87,97]},{\"at\":45,\"min\":29,\"q1\":43,\"median\":52,\"q3\":65,\"max\":105,\"count\":1243,\"samples\":[31,40,47,57,60,70]},{\"at\":50,\"min\":30,\"q1\":44,\"median\":54,\"q3\":68,\"max\":108,\"count\":1250,\"samples\":[55,61,70,81,91,104]},{\"at\":55,\"min\":31,\"q1\":45,\"median\":56,\"q3\":71,\"max\":111,\"count\":1257,\"samples\":[38,39,40,49,83,96]},{\"at\":60,\"min\":34,\"q1\":48,\"median\":57,\"q3\":69,\"max\":109,\"count\":1264,\"samples\":[35,43,81,86,103,105]}]'></box-distribution-timeline>",
       "referenceRows": [
         {
           "kind": "attribute",
@@ -5696,7 +5891,7 @@
           "kind": "attribute",
           "name": "hide-note",
           "type": "boolean",
-          "description": "Hide the standard band/range note, retaining description and plot summary."
+          "description": "Hide the method note, retaining the key, description and plot summary."
         },
         {
           "kind": "attribute",
@@ -5730,9 +5925,21 @@
         },
         {
           "kind": "attribute",
+          "name": "show-samples",
+          "type": "boolean",
+          "description": "Opt into the sampled-values layer; off by default. A named control also toggles it."
+        },
+        {
+          "kind": "event",
+          "name": "samples-toggled",
+          "type": "{ visible: boolean }",
+          "description": "The sampled-values control was toggled."
+        },
+        {
+          "kind": "attribute",
           "name": "hide-samples",
           "type": "boolean",
-          "description": "Draw summaries only, omitting sample dots."
+          "description": "Force sample dots and their control off, even if show-samples is set."
         },
         {
           "kind": "attribute",
@@ -5743,12 +5950,16 @@
       ],
       "variants": [
         {
-          "name": "Upload latency",
-          "html": "<box-distribution-timeline heading=\"Upload latency\" description=\"Each interval of one run, summarised\" unit=\"ms\" time-unit=\"s\" points='[{\"at\":0,\"min\":15,\"q1\":29,\"median\":38,\"q3\":50,\"max\":90,\"count\":1180,\"samples\":[31,38,44,52,71]},{\"at\":5,\"min\":16,\"q1\":30,\"median\":40,\"q3\":53,\"max\":93,\"count\":1187,\"samples\":[22,36,41,58,80]},{\"at\":10,\"min\":16,\"q1\":30,\"median\":41,\"q3\":55,\"max\":95,\"count\":1194,\"samples\":[27,39,47,63,88]},{\"at\":15,\"min\":19,\"q1\":33,\"median\":43,\"q3\":57,\"max\":99,\"count\":1201,\"samples\":[30,42,49,66,91]},{\"at\":20,\"min\":21,\"q1\":34,\"median\":44,\"q3\":59,\"max\":101,\"count\":1208,\"samples\":[33,43,51,70,96]},{\"at\":25,\"min\":21,\"q1\":35,\"median\":46,\"q3\":61,\"max\":104,\"count\":1215,\"samples\":[34,45,54,73,99]},{\"at\":30,\"min\":26,\"q1\":40,\"median\":51,\"q3\":63,\"max\":136,\"count\":1222,\"samples\":[38,52,61,88,128]},{\"at\":35,\"min\":27,\"q1\":41,\"median\":52,\"q3\":66,\"max\":139,\"count\":1229,\"samples\":[40,53,63,91,131]},{\"at\":40,\"min\":27,\"q1\":41,\"median\":51,\"q3\":67,\"max\":110,\"count\":1236,\"samples\":[36,50,58,79,105]},{\"at\":45,\"min\":30,\"q1\":44,\"median\":53,\"q3\":66,\"max\":109,\"count\":1243,\"samples\":[39,52,60,81,106]}]'></box-distribution-timeline>"
+          "name": "Interval summaries",
+          "html": "<box-distribution-timeline heading=\"Upload latency\" description=\"Illustrative run · one summary every 5 seconds\" unit=\"ms\" time-unit=\"s\" points='[{\"at\":0,\"min\":15,\"q1\":29,\"median\":38,\"q3\":50,\"max\":90,\"count\":1180,\"samples\":[42,46,46,49,51,64]},{\"at\":5,\"min\":16,\"q1\":30,\"median\":40,\"q3\":53,\"max\":93,\"count\":1187,\"samples\":[16,27,36,39,41,64]},{\"at\":10,\"min\":16,\"q1\":30,\"median\":41,\"q3\":55,\"max\":95,\"count\":1194,\"samples\":[36,41,75,79,87,92]},{\"at\":15,\"min\":20,\"q1\":34,\"median\":43,\"q3\":58,\"max\":98,\"count\":1201,\"samples\":[22,43,55,69,72,83]},{\"at\":20,\"min\":20,\"q1\":34,\"median\":44,\"q3\":56,\"max\":96,\"count\":1208,\"samples\":[37,40,44,47,53,80]},{\"at\":25,\"min\":21,\"q1\":35,\"median\":46,\"q3\":59,\"max\":99,\"count\":1215,\"samples\":[24,44,71,86,95,97]},{\"at\":30,\"min\":28,\"q1\":42,\"median\":51,\"q3\":65,\"max\":133,\"count\":1222,\"samples\":[44,52,60,76,83,111]},{\"at\":35,\"min\":28,\"q1\":42,\"median\":52,\"q3\":67,\"max\":135,\"count\":1229,\"samples\":[30,35,81,103,106,118]},{\"at\":40,\"min\":26,\"q1\":40,\"median\":51,\"q3\":63,\"max\":103,\"count\":1236,\"samples\":[61,62,64,73,87,97]},{\"at\":45,\"min\":29,\"q1\":43,\"median\":52,\"q3\":65,\"max\":105,\"count\":1243,\"samples\":[31,40,47,57,60,70]},{\"at\":50,\"min\":30,\"q1\":44,\"median\":54,\"q3\":68,\"max\":108,\"count\":1250,\"samples\":[55,61,70,81,91,104]},{\"at\":55,\"min\":31,\"q1\":45,\"median\":56,\"q3\":71,\"max\":111,\"count\":1257,\"samples\":[38,39,40,49,83,96]},{\"at\":60,\"min\":34,\"q1\":48,\"median\":57,\"q3\":69,\"max\":109,\"count\":1264,\"samples\":[35,43,81,86,103,105]}]'></box-distribution-timeline>"
         },
         {
-          "name": "Summaries only · log scale",
-          "html": "<box-distribution-timeline heading=\"Response times\" unit=\"ms\" time-unit=\"s\" scale=\"log\" hide-samples points='[{\"at\":0,\"min\":3,\"q1\":12,\"median\":24,\"q3\":58,\"max\":310},{\"at\":30,\"min\":4,\"q1\":18,\"median\":38,\"q3\":92,\"max\":470},{\"at\":60,\"min\":3,\"q1\":14,\"median\":29,\"q3\":66,\"max\":360},{\"at\":90,\"min\":5,\"q1\":21,\"median\":44,\"q3\":104,\"max\":520}]'></box-distribution-timeline>"
+          "name": "With sampled values",
+          "html": "<box-distribution-timeline show-samples heading=\"Upload latency\" description=\"Illustrative run · one summary every 5 seconds\" unit=\"ms\" time-unit=\"s\" points='[{\"at\":0,\"min\":15,\"q1\":29,\"median\":38,\"q3\":50,\"max\":90,\"count\":1180,\"samples\":[42,46,46,49,51,64]},{\"at\":5,\"min\":16,\"q1\":30,\"median\":40,\"q3\":53,\"max\":93,\"count\":1187,\"samples\":[16,27,36,39,41,64]},{\"at\":10,\"min\":16,\"q1\":30,\"median\":41,\"q3\":55,\"max\":95,\"count\":1194,\"samples\":[36,41,75,79,87,92]},{\"at\":15,\"min\":20,\"q1\":34,\"median\":43,\"q3\":58,\"max\":98,\"count\":1201,\"samples\":[22,43,55,69,72,83]},{\"at\":20,\"min\":20,\"q1\":34,\"median\":44,\"q3\":56,\"max\":96,\"count\":1208,\"samples\":[37,40,44,47,53,80]},{\"at\":25,\"min\":21,\"q1\":35,\"median\":46,\"q3\":59,\"max\":99,\"count\":1215,\"samples\":[24,44,71,86,95,97]},{\"at\":30,\"min\":28,\"q1\":42,\"median\":51,\"q3\":65,\"max\":133,\"count\":1222,\"samples\":[44,52,60,76,83,111]},{\"at\":35,\"min\":28,\"q1\":42,\"median\":52,\"q3\":67,\"max\":135,\"count\":1229,\"samples\":[30,35,81,103,106,118]},{\"at\":40,\"min\":26,\"q1\":40,\"median\":51,\"q3\":63,\"max\":103,\"count\":1236,\"samples\":[61,62,64,73,87,97]},{\"at\":45,\"min\":29,\"q1\":43,\"median\":52,\"q3\":65,\"max\":105,\"count\":1243,\"samples\":[31,40,47,57,60,70]},{\"at\":50,\"min\":30,\"q1\":44,\"median\":54,\"q3\":68,\"max\":108,\"count\":1250,\"samples\":[55,61,70,81,91,104]},{\"at\":55,\"min\":31,\"q1\":45,\"median\":56,\"q3\":71,\"max\":111,\"count\":1257,\"samples\":[38,39,40,49,83,96]},{\"at\":60,\"min\":34,\"q1\":48,\"median\":57,\"q3\":69,\"max\":109,\"count\":1264,\"samples\":[35,43,81,86,103,105]}]'></box-distribution-timeline>"
+        },
+        {
+          "name": "Log scale",
+          "html": "<box-distribution-timeline scale=\"log\" hide-samples heading=\"Upload latency\" description=\"Illustrative run · one summary every 5 seconds\" unit=\"ms\" time-unit=\"s\" points='[{\"at\":0,\"min\":15,\"q1\":29,\"median\":38,\"q3\":50,\"max\":90,\"count\":1180,\"samples\":[42,46,46,49,51,64]},{\"at\":5,\"min\":16,\"q1\":30,\"median\":40,\"q3\":53,\"max\":93,\"count\":1187,\"samples\":[16,27,36,39,41,64]},{\"at\":10,\"min\":16,\"q1\":30,\"median\":41,\"q3\":55,\"max\":95,\"count\":1194,\"samples\":[36,41,75,79,87,92]},{\"at\":15,\"min\":20,\"q1\":34,\"median\":43,\"q3\":58,\"max\":98,\"count\":1201,\"samples\":[22,43,55,69,72,83]},{\"at\":20,\"min\":20,\"q1\":34,\"median\":44,\"q3\":56,\"max\":96,\"count\":1208,\"samples\":[37,40,44,47,53,80]},{\"at\":25,\"min\":21,\"q1\":35,\"median\":46,\"q3\":59,\"max\":99,\"count\":1215,\"samples\":[24,44,71,86,95,97]},{\"at\":30,\"min\":28,\"q1\":42,\"median\":51,\"q3\":65,\"max\":133,\"count\":1222,\"samples\":[44,52,60,76,83,111]},{\"at\":35,\"min\":28,\"q1\":42,\"median\":52,\"q3\":67,\"max\":135,\"count\":1229,\"samples\":[30,35,81,103,106,118]},{\"at\":40,\"min\":26,\"q1\":40,\"median\":51,\"q3\":63,\"max\":103,\"count\":1236,\"samples\":[61,62,64,73,87,97]},{\"at\":45,\"min\":29,\"q1\":43,\"median\":52,\"q3\":65,\"max\":105,\"count\":1243,\"samples\":[31,40,47,57,60,70]},{\"at\":50,\"min\":30,\"q1\":44,\"median\":54,\"q3\":68,\"max\":108,\"count\":1250,\"samples\":[55,61,70,81,91,104]},{\"at\":55,\"min\":31,\"q1\":45,\"median\":56,\"q3\":71,\"max\":111,\"count\":1257,\"samples\":[38,39,40,49,83,96]},{\"at\":60,\"min\":34,\"q1\":48,\"median\":57,\"q3\":69,\"max\":109,\"count\":1264,\"samples\":[35,43,81,86,103,105]}]'></box-distribution-timeline>"
         }
       ]
     },
@@ -7013,6 +7224,42 @@
       "sourceSnippet": "<box-line-chart heading=\"Weekly active users\" timeframe=\"Sep 28–Nov 1, 2026\" unit=\"Distinct users\" x-label=\"Week of\" note=\"Illustrative data · Monday–Sunday intervals · A user is counted once per week\" domain=\"[0,500]\" points='[{\"id\":\"w1\",\"label\":\"Sep 28\",\"value\":310,\"inspection\":{\"label\":\"Week of Sep 28\",\"value\":\"310 users\"}},{\"id\":\"w2\",\"label\":\"Oct 5\",\"value\":355,\"inspection\":{\"label\":\"Week of Oct 5\",\"value\":\"355 users\",\"comparison\":\"+45 (+14.5%) vs Sep 28 · 310\"}},{\"id\":\"w3\",\"label\":\"Oct 12\",\"value\":348,\"inspection\":{\"label\":\"Week of Oct 12\",\"value\":\"348 users\",\"comparison\":\"−7 (−2.0%) vs Oct 5 · 355\"}},{\"id\":\"w4\",\"label\":\"Oct 19\",\"value\":402,\"inspection\":{\"label\":\"Week of Oct 19\",\"value\":\"402 users\",\"comparison\":\"+54 (+15.5%) vs Oct 12 · 348\"}},{\"id\":\"w5\",\"label\":\"Oct 26\",\"value\":431,\"inspection\":{\"label\":\"Latest week · Oct 26\",\"value\":\"431 users\",\"comparison\":\"+29 (+7.2%) vs Oct 19 · 402\"}}]' ></box-line-chart>",
       "referenceRows": [
         {
+          "kind": "property",
+          "name": "series",
+          "type": "LineChartSeries[]",
+          "description": "Opt into numeric multi-series mode. Ordered x/y points, stable IDs and optional host summaries; remove the attribute to return to categorical points."
+        },
+        {
+          "kind": "property",
+          "name": "markers",
+          "type": "LineChartMarker[]",
+          "description": "Labelled x/y references supplied by the host, including crossover markers."
+        },
+        {
+          "kind": "attribute",
+          "name": "x-scale",
+          "type": "linear | log",
+          "description": "Numeric x spacing; logarithmic axes require positive values."
+        },
+        {
+          "kind": "attribute",
+          "name": "y-scale",
+          "type": "linear | log",
+          "description": "Shared y scale; logarithmic axes require positive values."
+        },
+        {
+          "kind": "property",
+          "name": "xFormat / yFormat",
+          "type": "(value: number) => string",
+          "description": "Independent host axis/value formatters."
+        },
+        {
+          "kind": "property",
+          "name": "seriesTokens",
+          "type": "Record<string, string>",
+          "description": "Stable series IDs mapped to CSS token names."
+        },
+        {
           "kind": "attribute",
           "name": "selected-id",
           "type": "string",
@@ -7156,6 +7403,14 @@
         {
           "name": "Load error",
           "html": "<box-line-chart heading=\"Weekly active users\" timeframe=\"Sep 28–Nov 1, 2026\" unit=\"Distinct users\" x-label=\"Week of\" note=\"Illustrative data · Monday–Sunday intervals · A user is counted once per week\" domain=\"[0,500]\" points='[{\"id\":\"w1\",\"label\":\"Sep 28\",\"value\":310,\"inspection\":{\"label\":\"Week of Sep 28\",\"value\":\"310 users\"}},{\"id\":\"w2\",\"label\":\"Oct 5\",\"value\":355,\"inspection\":{\"label\":\"Week of Oct 5\",\"value\":\"355 users\",\"comparison\":\"+45 (+14.5%) vs Sep 28 · 310\"}},{\"id\":\"w3\",\"label\":\"Oct 12\",\"value\":348,\"inspection\":{\"label\":\"Week of Oct 12\",\"value\":\"348 users\",\"comparison\":\"−7 (−2.0%) vs Oct 5 · 355\"}},{\"id\":\"w4\",\"label\":\"Oct 19\",\"value\":402,\"inspection\":{\"label\":\"Week of Oct 19\",\"value\":\"402 users\",\"comparison\":\"+54 (+15.5%) vs Oct 12 · 348\"}},{\"id\":\"w5\",\"label\":\"Oct 26\",\"value\":431,\"inspection\":{\"label\":\"Latest week · Oct 26\",\"value\":\"431 users\",\"comparison\":\"+29 (+7.2%) vs Oct 19 · 402\"}}]' state=\"error\" status-message=\"Observations could not be loaded. Try again from the host application.\"></box-line-chart>"
+        },
+        {
+          "name": "Numeric series",
+          "html": "<box-line-chart heading=\"Tokens across document sizes\" message=\"Illustrative model · reference markers identify a sample and comparison, not an SLO\" x-label=\"Characters\" y-label=\"Tokens\" series='[{\"id\":\"direct\",\"label\":\"Direct extraction\",\"summary\":\"Flat at 539 tokens from 2,250 to 194,000 characters.\",\"points\":[{\"x\":2250,\"y\":539},{\"x\":12000,\"y\":539},{\"x\":48000,\"y\":539},{\"x\":96000,\"y\":539},{\"x\":194000,\"y\":539}]},{\"id\":\"agent\",\"label\":\"Agent\",\"points\":[{\"x\":2250,\"y\":310},{\"x\":12000,\"y\":720},{\"x\":48000,\"y\":2200},{\"x\":96000,\"y\":4100},{\"x\":194000,\"y\":8800}]},{\"id\":\"cache\",\"label\":\"Cached agent\",\"points\":[{\"x\":2250,\"y\":580},{\"x\":12000,\"y\":620},{\"x\":48000,\"y\":780},{\"x\":96000,\"y\":1100},{\"x\":194000,\"y\":1700}]}]' markers='[{\"id\":\"sample\",\"axis\":\"x\",\"value\":48000,\"label\":\"Measured sample\"},{\"id\":\"threshold\",\"axis\":\"y\",\"value\":2000,\"label\":\"Illustrative comparison\"}]'></box-line-chart>"
+        },
+        {
+          "name": "Logarithmic series",
+          "html": "<box-line-chart x-scale=\"log\" y-scale=\"log\" heading=\"Tokens across document sizes\" message=\"Illustrative model · reference markers identify a sample and comparison, not an SLO\" x-label=\"Characters\" y-label=\"Tokens\" series='[{\"id\":\"direct\",\"label\":\"Direct extraction\",\"summary\":\"Flat at 539 tokens from 2,250 to 194,000 characters.\",\"points\":[{\"x\":2250,\"y\":539},{\"x\":12000,\"y\":539},{\"x\":48000,\"y\":539},{\"x\":96000,\"y\":539},{\"x\":194000,\"y\":539}]},{\"id\":\"agent\",\"label\":\"Agent\",\"points\":[{\"x\":2250,\"y\":310},{\"x\":12000,\"y\":720},{\"x\":48000,\"y\":2200},{\"x\":96000,\"y\":4100},{\"x\":194000,\"y\":8800}]},{\"id\":\"cache\",\"label\":\"Cached agent\",\"points\":[{\"x\":2250,\"y\":580},{\"x\":12000,\"y\":620},{\"x\":48000,\"y\":780},{\"x\":96000,\"y\":1100},{\"x\":194000,\"y\":1700}]}]' markers='[{\"id\":\"sample\",\"axis\":\"x\",\"value\":48000,\"label\":\"Measured sample\"},{\"id\":\"threshold\",\"axis\":\"y\",\"value\":2000,\"label\":\"Illustrative comparison\"}]'></box-line-chart>"
         }
       ]
     },
