@@ -42,6 +42,7 @@ export abstract class ChartElement extends BaseElement {
     }
     super.attributeChangedCallback(name, oldValue, newValue);
   }
+  protected invalidateAnimationData(): void { this.motion.dataChanged(); }
   protected update(): void { this.renderChart(); this.motion.rendered(); }
   protected abstract renderChart(): void;
 }

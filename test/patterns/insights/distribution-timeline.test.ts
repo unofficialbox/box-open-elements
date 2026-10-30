@@ -86,8 +86,10 @@ describe("DistributionTimeline", () => {
     document.body.append(chart);
     (chart.shadowRoot?.querySelector('[part="table-toggle"]') as HTMLButtonElement).click();
     const table = chart.shadowRoot?.querySelector('[part="table-wrap"] table');
-    expect(table?.querySelectorAll("tbody tr")).toHaveLength(2);
-    expect(table?.querySelectorAll("thead th")).toHaveLength(7); // time, five numbers, count
+    expect(table?.querySelectorAll('[part="table-summary"]')).toHaveLength(2);
+    expect(table?.querySelectorAll("thead th")).toHaveLength(4); // time, median, range, count
+    // The quartiles and the extremes stay in each interval's disclosure.
+    expect(table?.querySelector('[part="table-detail"] details')?.textContent).toContain("Q1 30 ms · Q3 50 ms");
     const empty = document.createElement("box-distribution-timeline") as DistributionTimeline;
     document.body.append(empty);
     expect(empty.shadowRoot?.querySelector('[part="empty"]')?.textContent).toContain("No valid intervals");
@@ -118,15 +120,99 @@ it("offers sampled values as a repeatable keyboard control and recovers focused 
  root.querySelector<HTMLButtonElement>('[part="table-toggle"]')!.focus();root.querySelector<HTMLButtonElement>('[part="table-toggle"]')!.click();chart.points=[];expect(root.querySelector('[part="empty"]')!.textContent).toContain('No valid intervals');expect(root.activeElement?.getAttribute('part')).toBe('heading');
 });
 it("preserves all summary statistics in table mode, including zero counts and formatted units",()=>{
- const chart=new DistributionTimeline();chart.points=[{...point(0),count:0},point(5)];chart.format=n=>`${n} milliseconds`;document.body.append(chart);const root=chart.shadowRoot!;root.querySelector<HTMLButtonElement>('[part="table-toggle"]')!.click();expect(root.querySelectorAll('thead th')).toHaveLength(7);expect(root.querySelector('tbody')!.textContent).toContain('10 milliseconds30 milliseconds40 milliseconds50 milliseconds100 milliseconds0');
+ const chart=new DistributionTimeline();chart.points=[{...point(0),count:0},point(5)];chart.format=n=>`${n} milliseconds`;document.body.append(chart);const root=chart.shadowRoot!;root.querySelector<HTMLButtonElement>('[part="table-toggle"]')!.click();expect(root.querySelectorAll('thead th')).toHaveLength(4);
+ const first=root.querySelectorAll('[part="table-summary"]')[0],detail=root.querySelectorAll('[part="table-detail"]')[0];
+ expect(first.textContent).toContain('40 milliseconds');expect(first.textContent).toContain('10 milliseconds–100 milliseconds');expect(first.querySelector('td:last-child')!.textContent).toBe('0');
+ expect(detail.textContent).toContain('Q1 30 milliseconds · Q3 50 milliseconds');expect(detail.textContent).toContain('Minimum 10 milliseconds · Maximum 100 milliseconds');
 });
 
 it("retains every dense interval and the local scroll position when samples are toggled",()=>{
  const chart=new DistributionTimeline();chart.points=Array.from({length:500},(_,i)=>point(i,40,[12,44]));document.body.append(chart);const root=chart.shadowRoot!;
  expect(root.querySelectorAll('[part="interval"]')).toHaveLength(500);expect(root.querySelector('[part="chart-content"]')!.getAttribute('style')).toContain('8000px');
  root.querySelector('[part="chart-wrap"]')!.scrollLeft=300;chart.showSamples=true;expect(root.querySelector('[part="chart-wrap"]')!.scrollLeft).toBe(300);expect(root.querySelector('[part="note"]')!.textContent).toContain('Scroll horizontally');
- root.querySelector<HTMLButtonElement>('[part="table-toggle"]')!.click();expect(root.querySelectorAll('tbody tr')).toHaveLength(500);
+ root.querySelector<HTMLButtonElement>('[part="table-toggle"]')!.click();expect(root.querySelectorAll('[part="table-summary"]')).toHaveLength(500);
+ // Inspection scales with the run: every interval keeps a control, and the run
+ // still costs one tab stop.
+ root.querySelector<HTMLButtonElement>('[part="table-toggle"]')!.click();chart.selectable=true;
+ expect(root.querySelectorAll('[part="interval-control"]')).toHaveLength(500);
+ expect(Array.from(root.querySelectorAll<HTMLButtonElement>('[part="interval-control"]')).filter(control=>control.tabIndex===0)).toHaveLength(1);
 });
 it("keeps a stable sampled-values toggle name while pressed state and counts change",()=>{
  const chart=new DistributionTimeline();chart.points=[point(0,40,[12,44])];document.body.append(chart);const root=chart.shadowRoot!;const button=()=>root.querySelector<HTMLButtonElement>('[part="samples-toggle"]')!;expect(button().textContent).toBe('Sampled values');expect(button().getAttribute('aria-pressed')).toBe('false');button().click();expect(button().textContent).toBe('Sampled values');expect(button().getAttribute('aria-pressed')).toBe('true');expect(root.querySelector('[part="note"]')!.textContent).toContain('Showing 2 of 2');
+});
+
+// The presentation the insights family gained in #609: a coverage state, host
+// bounds for the value axis, and an inspection layer over the intervals.
+it("names a loading, failed, partial or cached run instead of drawing a stale one",()=>{
+ const chart=new DistributionTimeline();chart.points=[point(0),point(5)];document.body.append(chart);const root=chart.shadowRoot!;
+ chart.state="loading";
+ expect(root.querySelector('[part="empty"]')!.getAttribute('data-loading')).toBe('true');
+ expect(root.querySelector('[part="panel"]')!.getAttribute('aria-busy')).toBe('true');
+ expect(root.querySelector('svg[part="chart"]')).toBeNull();
+ expect(root.querySelector<HTMLButtonElement>('[part="table-toggle"]')!.hidden).toBe(true);
+ expect(root.querySelector('[part="note"]')).toBeNull();
+ chart.state="error";
+ expect(root.querySelector('[part="empty"]')!.textContent).toContain('could not be loaded');
+ chart.statusMessage="Retry from the host application.";
+ expect(root.querySelector('[part="empty"]')!.textContent).toBe('Retry from the host application.');
+ // Partial and cached runs stay drawn, with the reason beside them.
+ chart.state="partial";chart.statusMessage="";
+ expect(root.querySelector('svg[part="chart"]')).not.toBeNull();
+ expect(root.querySelector('[part="status"]')!.textContent).toContain('Partial interval coverage');
+ chart.state="stale";chart.statusMessage="Cached · updated at 09:00 UTC";
+ expect(root.querySelector('[part="status"]')!.textContent).toBe('Cached · updated at 09:00 UTC');
+ chart.state="ready";expect(root.querySelector('[part="status"]')).toBeNull();
+});
+it("takes host value bounds only when every drawn value fits inside them",()=>{
+ const chart=new DistributionTimeline();chart.unit="ms";chart.points=[point(0),point(5)];document.body.append(chart);const root=chart.shadowRoot!;
+ const ticks=()=>Array.from(root.querySelectorAll('[part="value-tick"]')).map(tick=>tick.textContent);
+ chart.domain=[0,200];
+ expect(ticks()[0]).toBe('0 ms');expect(ticks().at(-1)).toBe('200 ms');
+ // Bounds that would cut a maximum off are left alone rather than clipping it.
+ chart.domain=[0,50];
+ expect(ticks().at(-1)).not.toBe('50 ms');
+ expect(root.querySelector('svg[part="chart"]')!.getAttribute('aria-label')).toContain('100 ms');
+ chart.xLabel="Elapsed";expect(root.querySelector('[part="axis-title"]')!.textContent).toBe('Elapsed');
+});
+it("inspects one interval at a time, as one tab stop with the arrows between them",async()=>{
+ const chart=new DistributionTimeline();chart.heading="Upload latency";chart.selectable=true;
+ chart.points=[point(0,40),point(5,60),point(10,50)];document.body.append(chart);const root=chart.shadowRoot!;
+ const controls=()=>Array.from(root.querySelectorAll<HTMLButtonElement>('[part="interval-control"]'));
+ expect(controls()).toHaveLength(3);
+ expect(controls().filter(control=>control.tabIndex===0)).toHaveLength(1); // the run's latest interval
+ expect(controls()[1].getAttribute('aria-label')).toContain('5 s: median 60');
+ const selected:unknown[]=[],cleared:unknown[]=[];
+ chart.addEventListener('interval-selected',event=>selected.push((event as CustomEvent).detail));
+ chart.addEventListener('selection-cleared',event=>cleared.push((event as CustomEvent).detail));
+ controls()[1].click();
+ expect(selected).toEqual([{id:"5",at:5}]);
+ expect(chart.selectedId).toBe("5");
+ expect(root.activeElement?.getAttribute('part')).toBe('interval-control');
+ expect((root.activeElement as HTMLElement).dataset.pointId).toBe("5");
+ expect(root.querySelector('[part="selection"]')!.textContent).toContain('Q1 50 · Median 60 · Q3 70');
+ expect(root.querySelector('[part="interval"][data-selected="true"]')).not.toBeNull();
+ // The arrows move between intervals without selecting one.
+ root.activeElement!.dispatchEvent(new KeyboardEvent('keydown',{key:'ArrowRight',bubbles:true}));
+ expect((root.activeElement as HTMLElement).dataset.pointId).toBe("10");
+ expect(chart.selectedId).toBe("5");
+ root.activeElement!.dispatchEvent(new KeyboardEvent('keydown',{key:'ArrowRight',bubbles:true}));
+ expect((root.activeElement as HTMLElement).dataset.pointId).toBe("10"); // the last interval holds
+ root.activeElement!.dispatchEvent(new KeyboardEvent('keydown',{key:'Home',bubbles:true}));
+ expect((root.activeElement as HTMLElement).dataset.pointId).toBe("0");
+ expect((await axe.run(chart,{rules:{"color-contrast":{enabled:false}}})).violations).toEqual([]);
+ root.querySelector<HTMLButtonElement>('[part="clear-selection"]')!.click();
+ expect(cleared).toEqual([{selectedId:null}]);
+ expect(chart.selectedId).toBeNull();
+ expect(root.querySelector('[part="selection"]')).toBeNull();
+ expect((root.activeElement as HTMLElement).dataset.pointId).toBe("5"); // back where it was
+});
+it("leaves the plot one image until a host asks for inspection, and takes a supplied id",()=>{
+ const chart=new DistributionTimeline();chart.points=[point(0),point(5)];chart.selectedId="early";document.body.append(chart);const root=chart.shadowRoot!;
+ expect(root.querySelectorAll('[part="interval-control"]')).toHaveLength(0);
+ expect(root.querySelector('[part="selection"]')).toBeNull();
+ chart.selectable=true;
+ expect(root.querySelector('[part="selection"]')).toBeNull(); // no interval carries that id
+ chart.points=[{...point(0),id:"early"},point(5)];
+ expect(root.querySelector('[part="selection"]')!.textContent).toContain('Median 40');
+ expect(root.querySelector('[part="interval-control"]')!.getAttribute('aria-pressed')).toBe('true');
 });

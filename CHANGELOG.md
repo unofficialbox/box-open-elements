@@ -15,6 +15,10 @@ are kept as written.
 
 ## Unreleased
 
+- Bring the Distribution Timeline onto the insights family's chart presentation, which it was left out of when that presentation landed (#609, #610). `selectable` opts into interval inspection: one control per interval, reached as a single tab stop with the arrow keys moving between intervals, so a five-hundred-interval run does not become five hundred tab stops. Click, Enter or Space selects, reflecting `selected-id` / `selectedId` and emitting `interval-selected`; the selected interval is marked in the plot, summarised beneath it and named in the table, and “Clear selection” emits `selection-cleared` and returns focus to the interval it left. An interval's id is its own `id`, new and optional on `DistributionTimelinePoint`, or its time when the host supplies none.
+- `state="loading|error|partial|stale"` and `status-message` now cover a run's coverage here as they do for the other charts: loading and error replace the plot rather than drawing intervals the host does not have, while partial and cached runs stay drawn with the reason beside them. `domain` supplies containing value bounds, used only when every drawn statistic and sample fits inside them, and `x-label` titles the time axis.
+- The timeline's data table now leads with four priority columns — time, median, range and count — and keeps each interval's quartiles and extremes in a per-row disclosure, matching the box plot rather than asking seven numeric columns to fit a phone. No statistic is lost, and `[part="table-summary"]` and `[part="table-detail"]` identify the two rows an interval occupies.
+
 ## 0.44.0 — 2026-10-29
 
 - Add a read-only Distribution Timeline that plots one measurement's host-computed interval summaries over time: the minimum-to-maximum range, the Q1–Q3 band, the median line, and optional raw samples thinned to an even spread across the time axis (#606). The component aggregates nothing and leaves interval resolution to the host; `max-samples` caps the plotted dots and the thinning keeps a near-equal number in each slice of the time axis.

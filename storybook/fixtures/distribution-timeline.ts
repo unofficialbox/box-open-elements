@@ -17,3 +17,7 @@ const encoded=JSON.stringify(distributionTimelineDemoPoints).replaceAll("&","&am
 export const distributionTimelineHtml=`<box-distribution-timeline heading="Upload latency" description="Illustrative run · one summary every 5 seconds" unit="ms" time-unit="s" points='${encoded}'></box-distribution-timeline>`;
 export const distributionTimelineSamplesHtml=distributionTimelineHtml.replace('<box-distribution-timeline ','<box-distribution-timeline show-samples ');
 export const distributionTimelineLogHtml=distributionTimelineHtml.replace('<box-distribution-timeline ','<box-distribution-timeline scale="log" hide-samples ');
+const withAttributes=(attributes: string)=>distributionTimelineHtml.replace('<box-distribution-timeline ',`<box-distribution-timeline ${attributes} `);
+export const distributionTimelineSelectableHtml=withAttributes('selectable x-label="Seconds into the run"');
+export const distributionTimelinePartialHtml=withAttributes('state="partial" status-message="Coverage is incomplete; later intervals hold fewer calls."');
+export const distributionTimelineErrorHtml=withAttributes('state="error" status-message="Intervals could not be loaded. Retry from the host application."');

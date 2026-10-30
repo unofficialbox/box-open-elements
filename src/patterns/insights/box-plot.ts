@@ -243,7 +243,7 @@ export class BoxPlot extends ChartElement {
     try { const value: unknown = JSON.parse(this.getAttribute("rows") ?? "[]"); return Array.isArray(value) ? value as BoxPlotRow[] : []; }
     catch { return []; }
   }
-  set rows(value: BoxPlotRow[]) { this._rows = value; this.update(); }
+  set rows(value: BoxPlotRow[]) { this._rows = value; this.invalidateAnimationData(); this.update(); }
   get orientation(): BoxPlotOrientation { return this.getAttribute("orientation") === "vertical" ? "vertical" : "horizontal"; }
   set orientation(value: BoxPlotOrientation) { this.setAttribute("orientation", value); }
   get scale(): BoxPlotScale { return this.getAttribute("scale") === "log" ? "log" : "linear"; }

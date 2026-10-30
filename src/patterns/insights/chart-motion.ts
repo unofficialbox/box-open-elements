@@ -69,6 +69,7 @@ function frames(target: Target, effect: Effect, easing: ChartAnimationEasing): K
 export class ChartMotion {
   private animations: Animation[]=[];
   private contentKey="";
+  private dataRevision=0;
   private nodes: Element[]=[];
   private queued=false;
   private force=false;
@@ -112,6 +113,7 @@ export class ChartMotion {
     if(this.queued)return;this.queued=true;
     queueMicrotask(()=>{this.queued=false;if(this.connected){const replay=this.force;this.force=false;this.sync(replay);}});
   }
+  dataChanged(): void {this.dataRevision++;}
   replay(): void {
     if(this.host.animationPreset!=="loop"){this.rendered(true);return;}
     queueMicrotask(()=>{
@@ -124,7 +126,7 @@ export class ChartMotion {
   finish(): void {this.cancel();this.lastPulseTarget=null;this.syncControls();}
   private enabled(): boolean {return this.host.animated&&this.host.animationDuration>0&&!this.media?.matches&&typeof Element.prototype.animate==="function"&&!this.host.matches('[state="loading"],[state="error"]');}
   private sync(force: boolean): void {
-    const key=sourceAttributes.map(name=>`${name}=${this.host.getAttribute(name)??""}`).join("\n");
+    const key=`revision=${this.dataRevision}\n`+sourceAttributes.map(name=>`${name}=${this.host.getAttribute(name)??""}`).join("\n");
     const list=this.host.animated?targets(this.host):[];
     const same=key===this.contentKey;
     const now=performance.now();
@@ -185,7 +187,7 @@ export class ChartMotion {
     let target:Element|null=element.matches("circle,ellipse")&&element.getAttribute("fill")!=="transparent"&&element.getAttribute("part")!=="dot-halo"?element:null;
     if(!target&&data){
       const point=data.dataset.pointId??data.dataset.point,segment=data.dataset.segmentId,series=data.dataset.seriesId??data.dataset.series,id=data.dataset.id;
-      target=Array.from(root.querySelectorAll('[part="mark"],[part="dot"],[part="segment"],[part="series-path"],[part="sector"],[part="radar-line"]')).find(node=>{
+      target=Array.from(root.querySelectorAll('[part="mark"],[part="dot"],[part="segment"],[part="series-path"],[part="sector"],[part="radar-line"],[part="interval"]')).find(node=>{
         const value=(node as HTMLElement).dataset;
         if(point!==undefined)return value.point===point||value.pointId===point||value.animationPointId===point;
         if(segment!==undefined)return value.segmentId===segment;

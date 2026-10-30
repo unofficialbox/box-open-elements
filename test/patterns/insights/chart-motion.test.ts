@@ -210,3 +210,27 @@ it("uses the same complete optional animation markup in all seven framework exam
     for(const framework of FRAMEWORKS){const snippet=frameworkSnippet(framework.id,id,`box-${id}`,variant.codeHtml!);expect(snippet).toContain("animated");expect(snippet).toContain("animation-duration");expect(snippet).toContain(`box-${id}`);}
   }
 });
+
+it("pulses the visual interval associated with the distribution timeline's selectable control",async()=>{
+  const chart=mount("distribution-timeline",'animated animation-preset="loop" animation-loop selectable');await flush();
+  const controls=chart.shadowRoot!.querySelectorAll<HTMLButtonElement>('[part="interval-control"]');
+  expect(controls.length).toBeGreaterThan(1);
+  controls[1].focus();await flush();
+  const target=recorded.at(-1)!;
+  expect(target.element.getAttribute("part")).toBe("interval");
+  expect(target.element.getAttribute("data-animation-point-id")).toBe(controls[1].dataset.pointId);
+  expect(target.options.iterations).toBe(Infinity);
+});
+
+it.each(["box-plot","distribution-timeline"])("animates settled property snapshots in %s and settles rapid replacements",async id=>{
+  const clock=vi.spyOn(performance,"now").mockReturnValue(0);
+  const chart=mount(id,"animated") as ChartElement & { rows:unknown[];points:unknown[] };await flush();
+  const field=id==="box-plot"?"rows":"points";
+  const values=structuredClone(chart[field]) as Array<{median:number;q1:number;q3:number}>;
+  expect(values.length).toBeGreaterThan(0);const count=recorded.length;
+  clock.mockReturnValue(2000);values[0].median=(values[0].q1+values[0].q3)/2;
+  chart[field]=values;await flush();expect(recorded.length).toBeGreaterThan(count);
+  const after=recorded.length;clock.mockReturnValue(2100);chart[field]=structuredClone(values);await flush();
+  expect(recorded).toHaveLength(after);
+  expect(chart[field][0]).toEqual(values[0]);
+});
