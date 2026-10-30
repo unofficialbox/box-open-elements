@@ -36,6 +36,10 @@ export class FindingsDisclosure extends BaseElement {
   set leadCount(value:number){this.setAttribute("lead-count",String(value));}
   get expanded():boolean{return this.hasAttribute("expanded");}
   set expanded(value:boolean){this.toggleAttribute("expanded",value);}
+  connectedCallback():void{
+    this.upgradeProperties(["heading","headingLevel","findings","corrections","limits","leadCount","expanded"]);
+    super.connectedCallback();
+  }
   protected renderTemplate():void{
     this.shadowRoot!.innerHTML=`<style>${styles}</style><section part="panel"><div part="heading"></div><ul part="lead"></ul><p part="correction-summary" hidden></p><button type="button" part="toggle" aria-controls="finding-details" hidden></button><div part="details" role="region" id="finding-details" hidden></div></section>`;
   }
@@ -49,7 +53,11 @@ export class FindingsDisclosure extends BaseElement {
     if(!this.isRendered)return;
     const toggleFocused=this.shadowRoot!.activeElement?.getAttribute("part")==="toggle";
     const root=this.shadowRoot!,findings=this.findings,corrections=this.corrections,limits=this.limits;
-    root.querySelector('[part="heading"]')!.innerHTML=renderHeadingHtml(this.heading,{level:this.headingLevel});
+    const headingHost=root.querySelector('[part="heading"]')!;
+    const headingFocused=headingHost.contains(root.activeElement);
+    if(headingHost.firstElementChild?.localName===`h${this.headingLevel}`)headingHost.firstElementChild.textContent=this.heading;
+    else headingHost.innerHTML=renderHeadingHtml(this.heading,{level:this.headingLevel});
+    if(headingFocused){const heading=headingHost.firstElementChild as HTMLElement;heading.tabIndex=-1;heading.focus();}
     root.querySelector('[part="panel"]')!.setAttribute("aria-label",this.heading);
     const list=(items:string[])=>items.map(text=>`<li>${escape(text)}</li>`).join("");
     const lead=root.querySelector<HTMLElement>('[part="lead"]')!;lead.innerHTML=list(findings.slice(0,this.leadCount));lead.hidden=!lead.childElementCount;

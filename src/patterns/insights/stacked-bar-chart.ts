@@ -48,6 +48,10 @@ export class StackedBarChart extends BaseElement {
   set seriesTokens(value:Record<string,string>){this.setAttribute("series-tokens",JSON.stringify(value));}
   get format():(value:number)=>string{return this.formatter??formatAnalyticValue;}
   set format(value:(value:number)=>string){this.formatter=value;this.update();}
+  connectedCallback():void{
+    this.upgradeProperties(["heading", "description", "bars", "unit", "state", "statusMessage", "seriesTokens", "format", "orientation"]);
+    super.connectedCallback();
+  }
   protected renderTemplate():void{
     this.shadowRoot!.innerHTML=`<style>${styles}</style><article part="panel"><h2 part="heading"></h2><p part="scope" hidden></p><div part="status" role="status" aria-live="polite"></div><div part="legend"></div><div part="chart"></div><p part="inspection" role="status" aria-live="polite">Focus a segment to inspect its amount and share.</p><button part="table-toggle" type="button" aria-controls="stacked-data">Show data table</button><div part="table-wrap" id="stacked-data" hidden></div><p part="note">Tiny positive segments use a minimum 2px mark. Exact amounts and rounded shares are available in the table. Shares below 0.1% are labelled explicitly.</p><slot name="footer"></slot></article>`;
   }
@@ -92,7 +96,7 @@ export class StackedBarChart extends BaseElement {
     chart.dataset.orientation=this.orientation;
     chart.innerHTML=`<div part="rows">${bars.map((bar,i)=>{
       let sum=0;const total=totals[i];
-      const segments=bar.segments.map(s=>{const start=sum/maximum*100;sum+=s.value;const text=`${bar.label}: ${s.label} ${this.format(s.value)} of ${this.format(total)}, ${formatAnalyticShare(s.value,total)}`;return `<button type="button" part="segment" data-bar="${escape(bar.id)}" data-segment="${escape(s.id)}" data-positive="${s.value>0}" style="--start:${start}%;--size:${s.value/maximum*100}%;--series-color:${colors.get(s.id)}" aria-label="${escape(text)}" title="${escape(text)}"></button>`;}).join("");
+      const segments=bar.segments.map(s=>{const start=sum/maximum*100;sum+=s.value;const text=`${bar.label}: ${s.label} ${this.format(s.value)}${this.unit?` ${this.unit}`:""} of ${this.format(total)}, ${formatAnalyticShare(s.value,total)}`;return `<button type="button" part="segment" data-bar="${escape(bar.id)}" data-segment="${escape(s.id)}" data-positive="${s.value>0}" style="--start:${start}%;--size:${s.value/maximum*100}%;--series-color:${colors.get(s.id)}" aria-label="${escape(text)}" title="${escape(text)}"></button>`;}).join("");
       return `<div part="plot-row"><div part="row-label">${escape(bar.label)}<strong part="total">${escape(bar.totalLabel??this.format(total))}${this.unit?` ${escape(this.unit)}`:""}</strong></div><div part="track"><div part="stack" role="group" aria-label="${escape(bar.label)}">${segments}</div></div></div>`;
     }).join("")}</div><div part="axis" aria-label="${escape(this.unit||"Amount")} scale">${scale.ticks.map(t=>`<span style="--position:${scale.position(t)*100}%">${escape(this.format(t))}</span>`).join("")}</div>`;
     root.querySelector('[part="table-wrap"]')!.innerHTML=`<table><caption>${escape(this.heading)} — exact composition${this.unit?` (${escape(this.unit)})`:""}</caption><thead><tr><th scope="col">Category</th><th scope="col">Segment</th><th scope="col">Amount</th><th scope="col">Share</th></tr></thead><tbody>${bars.flatMap((bar,i)=>bar.segments.map(s=>`<tr><th scope="row">${escape(bar.label)}</th><td>${escape(s.label)}</td><td>${escape(this.format(s.value))}</td><td>${escape(formatAnalyticShare(s.value,totals[i]))}</td></tr>`)).join("")}</tbody></table>`;

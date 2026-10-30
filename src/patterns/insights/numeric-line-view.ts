@@ -43,7 +43,7 @@ export class NumericLineView {
     };
     root.addEventListener("focusin",event=>activate((event.target as HTMLElement).closest<HTMLElement>('[data-series-id]')?.dataset.seriesId??null));
     root.addEventListener("pointerover",event=>activate((event.target as Element).closest<HTMLElement>('[data-series-id]')?.dataset.seriesId??null));
-    root.addEventListener("pointerleave",()=>activate(null));
+    container.addEventListener("pointerleave",()=>activate(null));
     root.querySelector('button[part="table-toggle"]')!.addEventListener("click",()=>{this.tableVisible=!this.tableVisible;this.syncTable();});
   }
   private summary(series:LineChartSeries):string{
@@ -98,9 +98,11 @@ export class NumericLineView {
       table.hidden=false;return;
     }
     const axisFormat=(value:number,format:(n:number)=>string)=>format===formatAnalyticValue?new Intl.NumberFormat("en",{notation:"compact",maximumSignificantDigits:3}).format(value):format(value);
-    const xScale=analyticScale(xs,host.xScale==="log"),yScale=analyticScale(ys,host.yScale==="log");
+    const xScale=analyticScale(xs,host.xScale==="log",{includeZero:false}),yScale=analyticScale(ys,host.yScale==="log");
     root.querySelector('svg')!.setAttribute("aria-label",`${host.heading}: ${series.map(s=>s.label).join(", ")}. ${host.xLabel||"X"} ${host.xScale}; ${host.yLabel||"Value"} ${host.yScale}. Exact values and summaries follow.`);
-    root.querySelector('[part="x-ticks"]')!.innerHTML=xScale.ticks.map(x=>`<span part="tick" style="--position:${xScale.position(x)*100}%">${escape(axisFormat(x,host.xFormat))}</span>`).join("");
+    let xLabels=xScale.ticks.map(x=>axisFormat(x,host.xFormat));
+    if(host.xFormat===formatAnalyticValue&&new Set(xLabels).size!==xLabels.length)xLabels=xScale.ticks.map(host.xFormat);
+    root.querySelector('[part="x-ticks"]')!.innerHTML=xScale.ticks.map((x,i)=>`<span part="tick" style="--position:${xScale.position(x)*100}%" title="${escape(host.xFormat(x))}">${escape(xLabels[i])}</span>`).join("");
     root.querySelector('[part="y-ticks"]')!.innerHTML=yScale.ticks.map(y=>`<span part="tick" style="--position:${yScale.position(y)*100}%">${escape(axisFormat(y,host.yFormat))}</span>`).join("");
     root.querySelector('[part="grid"]')!.innerHTML=yScale.ticks.map(y=>`<line part="grid-line" x1="0" x2="100" y1="${100-yScale.position(y)*100}" y2="${100-yScale.position(y)*100}"/>`).join("");
     root.querySelector('[part="series"]')!.innerHTML=series.map((s,i)=>{

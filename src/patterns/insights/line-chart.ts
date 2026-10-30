@@ -156,6 +156,7 @@ export class LineChart extends BaseElement {
   private resizeObserver?: ResizeObserver;
 
   connectedCallback(): void {
+    this.upgradeProperties(["heading","series","markers","xScale","yScale","xLabel","yLabel","xFormat","yFormat","seriesTokens"]);
     super.connectedCallback();
     if (typeof ResizeObserver !== "undefined") {
       this.resizeObserver = new ResizeObserver(() => this.update());

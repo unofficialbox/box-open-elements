@@ -5945,7 +5945,7 @@
           "kind": "attribute",
           "name": "max-samples",
           "type": "number",
-          "description": "Cap on plotted sample dots, default 2000."
+          "description": "Cap on plotted sample dots, default 600. Larger sets are thinned across the time axis."
         }
       ],
       "variants": [

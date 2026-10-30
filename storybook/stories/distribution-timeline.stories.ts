@@ -22,7 +22,7 @@ const distributionTimeline: StoryModule = {
       { kind: "attribute", name: "show-samples", type: "boolean", description: "Opt into the sampled-values layer; off by default. A named control also toggles it." },
       { kind: "event", name: "samples-toggled", type: "{ visible: boolean }", description: "The sampled-values control was toggled." },
       { kind: "attribute", name: "hide-samples", type: "boolean", description: "Force sample dots and their control off, even if show-samples is set." },
-      { kind: "attribute", name: "max-samples", type: "number", description: "Cap on plotted sample dots, default 2000." },
+      { kind: "attribute", name: "max-samples", type: "number", description: "Cap on plotted sample dots, default 600. Larger sets are thinned across the time axis." },
     ],
   },
   variants:[{name:"Interval summaries",html:distributionTimelineHtml},{name:"With sampled values",html:distributionTimelineSamplesHtml},{name:"Log scale",html:distributionTimelineLogHtml}],

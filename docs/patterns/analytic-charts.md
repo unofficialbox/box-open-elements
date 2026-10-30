@@ -30,7 +30,7 @@ chart.yLabel = "Tokens";
 chart.markers = [{ id: "sample", axis: "x", value: 48000, label: "Measured sample" }];
 ```
 
-Numeric positions preserve actual spacing; each series must have finite, strictly increasing x values. Null y observations remain gaps and are never interpolated. All series share axes. `xScale` and `yScale` accept `linear` or `log`; log axes require positive observations/references. Invalid log data leaves the supplied values visible in the table with an explicit explanation rather than silently dropping zeros. Remove the `series` attribute to return to categorical mode.
+Numeric positions preserve actual spacing; each series must have finite, strictly increasing x values. Null y observations remain gaps and are never interpolated. All series share axes. Linear x axes fit the numeric observations and references; linear y axes retain a zero baseline. `xScale` and `yScale` accept `linear` or `log`; log axes require positive observations/references. Invalid log data leaves the supplied values visible in the table with an explicit explanation rather than silently dropping zeros. Remove the `series` attribute to return to categorical mode.
 
 `xFormat` and `yFormat` are independent property callbacks. The table uses the union of all supplied x positions and every series; absent/null values say “Not observed.” Each series has a host-authored `summary`, or a factual endpoint/flat description with observation counts. Do not interpret matching endpoints as a flat series; only equal observed values get that description. Legends wrap on narrow screens. Line dash patterns, labels, summaries and the table supplement color. Hover/focus highlights one series while retaining the others.
 

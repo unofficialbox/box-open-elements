@@ -16,7 +16,7 @@ Import the `distribution-timeline` entry or `patterns/insights`. Root, optimized
 
 ## Samples and table
 
-Sampled values are an inspection layer, **off by default**. The named “Show sampled values” control, or `showSamples` / `show-samples`, enables them. `hideSamples` / `hide-samples` forces both the layer and its control off. The control emits `samples-toggled` with `{ visible: boolean }`.
+Sampled values are an inspection layer, **off by default**. The “Sampled values” toggle uses a stable name and `aria-pressed` to expose its state. Toggle it or set `showSamples` / `show-samples` to enable the layer. `hideSamples` / `hide-samples` forces both the layer and its control off. The control emits `samples-toggled` with `{ visible: boolean }`.
 
 `maxSamples` / `max-samples` defaults to 600. All supplied samples are shown when they fit the cap; larger sets are thinned across the time axis. The note and control name disclose the actual shown and supplied counts. Dots retain a circular, fixed-pixel shape at desktop/mobile widths. They are not a continuous density estimate.
 

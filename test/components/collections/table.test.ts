@@ -1210,3 +1210,8 @@ it.each(["single","multiple"] as const)("selects focused %s rows on Enter withou
   row().dispatchEvent(new KeyboardEvent("keydown",{key:"Enter",bubbles:true,cancelable:true}));
   expect(el.selectedIds).toEqual(mode==="multiple"?[]:["b"]);el.remove();
 });
+it.each(['none','single','multiple'])("does not cancel Enter or Space from a closed-shadow detail control in %s mode",mode=>{
+ const el=create(mode);el.rows=[{id:'1',cells:{name:'A'},detail:'Rich detail'}];el.shadowRoot!.querySelector<HTMLButtonElement>('[part="expander"]')!.click();
+ const host=document.createElement('div');host.slot='detail-1';const shadow=host.attachShadow({mode:'closed'});const link=document.createElement('a');link.href='#detail';link.textContent='Details';shadow.append(link);el.append(host);
+ for(const key of ['Enter',' ']){const event=new KeyboardEvent('keydown',{key,bubbles:true,composed:true,cancelable:true});link.dispatchEvent(event);expect(event.defaultPrevented).toBe(false);}expect(el.selectedIds).toEqual([]);el.remove();
+});

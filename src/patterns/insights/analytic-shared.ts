@@ -19,12 +19,13 @@ export const categoricalColors = [
 /** Values are CSS token names, never arbitrary CSS supplied through HTML. */
 export function categoryColor(id: string, index: number, tokens: Record<string,string>, tone?: string): string {
   const named: Record<string,string> = {primary:"--boe-token-surface-surface-brand",accent:"--boe-chart-series-2",neutral:"--boe-token-text-text-secondary",success:"--boe-token-text-status-text-success",warning:"--boe-token-text-status-text-warning",error:"--boe-token-text-status-text-error"};
-  const token = tokens[id] ?? (tone?.startsWith("--") ? tone : named[tone??""]);
+  const name = typeof tone === "string" ? tone : "";
+  const token = tokens[id] ?? (name.startsWith("--") ? name : named[name]);
   const fallback = categoricalColors[index % categoricalColors.length];
   return typeof token === "string" && /^--[a-zA-Z0-9_-]+$/.test(token) ? `var(${token},${fallback})` : fallback;
 }
-export function analyticScale(values: number[], logarithmic = false) {
-  if (!logarithmic) return chartScale(values);
+export function analyticScale(values: number[], logarithmic = false, options: {includeZero?:boolean} = {}) {
+  if (!logarithmic) return chartScale(values,options);
   if(!values.length)return {ticks:[1,10],position:(value:number)=>Math.log10(value)};
   let observedLow=Infinity,observedHigh=-Infinity;
   for(const value of values){observedLow=Math.min(observedLow,value);observedHigh=Math.max(observedHigh,value);}

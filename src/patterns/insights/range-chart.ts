@@ -42,6 +42,10 @@ export class RangeChart extends BaseElement {
   private ranges(row:RangeChartRow):ChartRange[]{
     return row.ranges??[{id:"range",label:"Range",low:row.low!,high:row.high!,value:row.value,tone:row.tone}];
   }
+  connectedCallback():void{
+    this.upgradeProperties(["heading", "description", "rows", "unit", "state", "statusMessage", "seriesTokens", "format"]);
+    super.connectedCallback();
+  }
   protected renderTemplate():void{
     this.shadowRoot!.innerHTML=`<style>${styles}</style><article part="panel"><h2 part="heading"></h2><p part="scope" hidden></p><div part="status" role="status" aria-live="polite"></div><div part="legend"></div><div part="chart"></div><p part="inspection" role="status" aria-live="polite">Focus a range to inspect its bounds. A point appears only when supplied by the host.</p><button part="table-toggle" type="button" aria-controls="range-data">Show data table</button><div part="table-wrap" id="range-data" hidden></div><slot name="footer"></slot></article>`;
   }

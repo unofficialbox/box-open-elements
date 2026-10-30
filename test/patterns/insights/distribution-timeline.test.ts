@@ -127,3 +127,6 @@ it("retains every dense interval and the local scroll position when samples are 
  root.querySelector('[part="chart-wrap"]')!.scrollLeft=300;chart.showSamples=true;expect(root.querySelector('[part="chart-wrap"]')!.scrollLeft).toBe(300);expect(root.querySelector('[part="note"]')!.textContent).toContain('Scroll horizontally');
  root.querySelector<HTMLButtonElement>('[part="table-toggle"]')!.click();expect(root.querySelectorAll('tbody tr')).toHaveLength(500);
 });
+it("keeps a stable sampled-values toggle name while pressed state and counts change",()=>{
+ const chart=new DistributionTimeline();chart.points=[point(0,40,[12,44])];document.body.append(chart);const root=chart.shadowRoot!;const button=()=>root.querySelector<HTMLButtonElement>('[part="samples-toggle"]')!;expect(button().textContent).toBe('Sampled values');expect(button().getAttribute('aria-pressed')).toBe('false');button().click();expect(button().textContent).toBe('Sampled values');expect(button().getAttribute('aria-pressed')).toBe('true');expect(root.querySelector('[part="note"]')!.textContent).toContain('Showing 2 of 2');
+});

@@ -29,3 +29,14 @@ it("exposes accessible disclosure semantics collapsed and expanded",async()=>{
  const el=new FindingsDisclosure();el.findings=["Lead","Detail"];el.limits=["Scope"];document.body.append(el);
  for(const expanded of [false,true]){el.expanded=expanded;const result=await axe.run(el,{rules:{"color-contrast":{enabled:false}}});expect(result.violations).toEqual([]);}
 });
+it("replays properties assigned before registration and keeps setters reactive",()=>{
+ const tag='boe-test-findings-upgrade';const el=document.createElement(tag) as FindingsDisclosure;
+ Object.assign(el,{heading:'Before registration',findings:['Lead','More'],corrections:[{field:'Scope',was:'All',now:'Sample',why:'Coverage'}],limits:['Sample only'],leadCount:0,headingLevel:3,expanded:true});document.body.append(el);
+ customElements.define(tag,class extends FindingsDisclosure{});
+ expect(Object.hasOwn(el,'expanded')).toBe(false);expect(el.hasAttribute('expanded')).toBe(true);expect(el.shadowRoot!.querySelector('h3')!.textContent).toBe('Before registration');
+ const toggle=el.shadowRoot!.querySelector<HTMLButtonElement>('[part="toggle"]')!;toggle.click();expect(el.expanded).toBe(false);expect(toggle.getAttribute('aria-expanded')).toBe('false');el.findings=['Updated'];expect(el.shadowRoot!.querySelector('[part="details"]')!.textContent).toContain('Updated');el.remove();
+});
+it("keeps fallback heading focus through subsequent attribute and level updates",()=>{
+ const el=new FindingsDisclosure();el.findings=['Lead','Detail'];document.body.append(el);const root=el.shadowRoot!;root.querySelector<HTMLButtonElement>('[part="toggle"]')!.focus();el.findings=['Lead'];
+ expect(root.activeElement).toBe(root.querySelector('[part="heading"] h2'));el.limits=[];expect(root.activeElement).toBe(root.querySelector('[part="heading"] h2'));el.headingLevel=3;expect(root.activeElement).toBe(root.querySelector('[part="heading"] h3'));el.heading='Updated';expect(root.activeElement?.textContent).toBe('Updated');
+});
