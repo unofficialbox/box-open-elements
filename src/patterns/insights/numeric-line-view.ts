@@ -56,8 +56,7 @@ export class NumericLineView {
       const direction=(event.target as Element).closest<HTMLElement>('[data-table-step]')?.dataset.tableStep;
       if(direction){
         this.tablePage=Math.max(0,Math.min(this.tablePages-1,this.tablePage+Number(direction)));this.syncTable();
-        const replacement=root.querySelector<HTMLButtonElement>(`[data-table-step="${direction}"]:not([disabled])`);
-        (replacement??root.querySelector<HTMLElement>('[part="table-wrap"]'))?.focus();
+        this.focusTableStep(direction);
       }
     });
     root.querySelector('button[part="table-toggle"]')!.addEventListener("click",()=>{this.tableVisible=!this.tableVisible;this.syncTable();});
@@ -77,11 +76,18 @@ export class NumericLineView {
     const text=series?this.summary(series):"Focus a series to inspect its shape.";
     const node=this.root.querySelector('[part="inspection"]')!;if(node.textContent!==text)node.textContent=text;
   }
+  private focusTableStep(direction:string):void{
+    const button=this.root.querySelector<HTMLButtonElement>(`[data-table-step="${direction}"]:not([disabled])`);
+    (button??this.root.querySelector<HTMLElement>('[part="table-wrap"]'))?.focus();
+  }
   private syncTable():void{
     const table=this.root.querySelector<HTMLElement>('[part="table-wrap"]')!;
+    const focused=this.root.activeElement as HTMLElement|null;
+    const direction=focused&&table.contains(focused)?focused.closest<HTMLElement>('[data-table-step]')?.dataset.tableStep:undefined;
     table.hidden=!this.tableVisible;
     if(this.tableVisible&&this.tableMarkup)table.innerHTML=this.tableMarkup(this.tablePage);else table.replaceChildren();
     const button=this.root.querySelector<HTMLButtonElement>('[part="table-toggle"]')!;button.textContent=this.tableVisible?"Hide data table":"Show data table";button.setAttribute("aria-expanded",String(this.tableVisible));
+    if(direction&&this.tableVisible)this.focusTableStep(direction);
   }
   update():void{
     const {root,host}=this,series=host.series,markers=host.markers;

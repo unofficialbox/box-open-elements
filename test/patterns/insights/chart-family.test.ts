@@ -303,5 +303,8 @@ it("keeps numeric-line paging focus through repeated changes and boundary pages"
   expect(root.querySelector('tbody th')!.textContent).toBe(first);
   const replacement=root.querySelector<HTMLButtonElement>(`[data-table-step="${direction}"]`)!;
   expect(root.activeElement).toBe(replacement.disabled?root.querySelector('[part="table-wrap"]'):replacement);
+  chart.heading=`Redrawn page starting at ${first}`;
+  const afterRedraw=root.querySelector<HTMLButtonElement>(`[data-table-step="${direction}"]`)!;
+  expect(root.activeElement).toBe(afterRedraw.disabled?root.querySelector('[part="table-wrap"]'):afterRedraw);
  }
 });
