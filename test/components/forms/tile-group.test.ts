@@ -39,7 +39,7 @@ describe("box-tile-group", () => {
   };
 
   const tiles = (element: TileGroup): HTMLElement[] =>
-    Array.from(element.shadowRoot!.querySelectorAll<HTMLElement>('[part="tile"]'));
+    Array.from(element.shadowRoot!.querySelectorAll<HTMLElement>('[part~="tile"]'));
 
   const controls = (element: TileGroup): HTMLInputElement[] =>
     Array.from(element.shadowRoot!.querySelectorAll<HTMLInputElement>('[part="control"]'));
@@ -133,7 +133,7 @@ describe("box-tile-group", () => {
     // Without this the keyboard focus ring would be invisible.
     const styles = mount().shadowRoot?.querySelector("style")?.textContent ?? "";
 
-    expect(styles).toContain('[part="tile"]:has(input:focus-visible)');
+    expect(styles).toContain('[part~="tile"]:has(input:focus-visible)');
   });
 
   it("keeps the legend after a rebuild", () => {
@@ -144,4 +144,47 @@ describe("box-tile-group", () => {
     element.options = [{ id: "solo", label: "Solo" }];
     expect(element.shadowRoot?.querySelector('[part="legend"]')?.textContent).toBe("Choose a plan");
   });
+});
+
+
+it("switches chip layout without replacing native controls or losing selection (#618)", () => {
+  const group = new TileGroup();
+  group.options = [{ id: "a", label: "Alpha", meta: "12" }, { id: "b", label: "Beta" }];
+  group.value = "a";
+  expect(group.layout).toBe("tiles");
+  group.setAttribute("layout", "unknown");
+  expect(group.layout).toBe("tiles");
+  document.body.append(group);
+  const control = group.shadowRoot!.querySelector<HTMLInputElement>("input")!;
+  control.focus();
+  group.layout = "chips";
+  expect(group.getAttribute("layout")).toBe("chips");
+  expect(group.shadowRoot!.querySelector("input")).toBe(control);
+  expect(group.shadowRoot!.activeElement).toBe(control);
+  expect(control.checked).toBe(true);
+  expect(group.shadowRoot!.getElementById(control.getAttribute("aria-describedby")!)?.textContent).toBe("12");
+  group.layout = "tiles";
+  expect(group.layout).toBe("tiles");
+  group.removeAttribute("layout");
+  expect(group.layout).toBe("tiles");
+  group.remove();
+});
+
+
+it("exposes selected tiles as a part hosts can theme without losing the base tile part (#618)", () => {
+  const group = new TileGroup();
+  group.options = [{ id: "a", label: "Alpha" }, { id: "b", label: "Beta" }];
+  document.body.append(group);
+  group.value = "a";
+  expect(group.shadowRoot!.querySelector('[part~="tile-selected"]')?.getAttribute("data-option-id")).toBe("a");
+  group.value = "b";
+  expect(group.shadowRoot!.querySelectorAll('[part~="tile-selected"]')).toHaveLength(1);
+  expect(group.shadowRoot!.querySelector('[part~="tile-selected"]')?.getAttribute("data-option-id")).toBe("b");
+  expect(group.shadowRoot!.querySelectorAll('[part~="tile"]')).toHaveLength(2);
+  group.multiple = true;
+  group.value = "a,b";
+  expect(group.shadowRoot!.querySelectorAll('[part~="tile-selected"]')).toHaveLength(2);
+  group.value = "";
+  expect(group.shadowRoot!.querySelector('[part~="tile-selected"]')).toBeNull();
+  group.remove();
 });

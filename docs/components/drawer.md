@@ -44,3 +44,10 @@ When checking contrast for transparent slotted content, use the painted drawer
 panel as its background. A native dialog's scrim behind the panel is not the
 background behind that text; verify computed ancestor surfaces and screenshot
 pixels if an automated report attributes text contrast to the scrim.
+
+## Long content
+
+Side panels use border-box sizing and a `100dvh` height limit. The body scrolls
+inside the panel while the header and slotted footer stay visible. On phones,
+bottom drawers also fill the dynamic viewport; desktop bottom sheets retain
+their size preset.

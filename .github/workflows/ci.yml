@@ -164,6 +164,24 @@ jobs:
             .regression-tmp/table-links
             .regression-tmp/table-docs-notes
 
+  issue-layouts:
+    name: Drawer, Table, Tile Group and Metric Card regressions
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.11
+      - name: Check layouts and native interactions in pinned Chromium and Firefox
+        run: bash tools/preview/container-run.sh 'bun run build:core && BOE_ISSUE_BROWSER=chromium BOE_ISSUE_EVIDENCE_DIR=/work/.regression-tmp/issue-layouts/chromium node tools/preview/issue-layouts.mjs && BOE_ISSUE_BROWSER=firefox BOE_ISSUE_EVIDENCE_DIR=/work/.regression-tmp/issue-layouts/firefox node tools/preview/issue-layouts.mjs'
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: issue-layouts
+          path: .regression-tmp/issue-layouts
+
   segmented-reflow:
     name: Segmented control reflow (pinned Chromium and Firefox)
     runs-on: ubuntu-latest

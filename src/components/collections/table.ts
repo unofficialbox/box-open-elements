@@ -153,7 +153,7 @@ const tableStyles = `
   table {
     width: 100%;
     border-collapse: collapse;
-    font-size: 13px;
+    font-size: var(--boe-table-font-size, inherit);
   }
 
   thead {
@@ -168,10 +168,10 @@ const tableStyles = `
     padding: ${boeSpace[2]} ${boeSpace[3]};
     background: var(--boe-token-surface-surface-secondary, #fbfbfb);
     color: var(--boe-token-text-text-secondary, #6f6f6f);
-    font-size: 11px;
+    font-size: inherit;
     font-weight: 700;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
+    letter-spacing: normal;
+    text-transform: none;
     white-space: nowrap;
     border-bottom: 1px solid var(--boe-token-stroke-stroke, #e8e8e8);
   }
@@ -179,13 +179,13 @@ const tableStyles = `
   th[data-align="end"], td[data-align="end"] { text-align: end; }
   th[data-align="center"], td[data-align="center"] { text-align: center; }
 
-  th[part="sortable"] {
+  th[part~="sortable"] {
     cursor: pointer;
     user-select: none;
     /* The button carries the padding so its hit area fills the cell. */
     padding: 0;
   }
-  th[part="sortable"]:hover { color: var(--boe-token-text-text, #222222); }
+  th[part~="sortable"]:hover { color: var(--boe-token-text-text, #222222); }
 
   /* A real button, so sorting is reachable by keyboard: focus, Enter and
      Space come from the platform instead of a keydown reimplementation. */
@@ -234,7 +234,7 @@ const tableStyles = `
   }
 
   tbody tr[aria-selected="true"] :is(td, th) {
-    background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 10%, transparent);
+    background: var(--boe-token-surface-item-surface-selected, color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 10%, transparent));
   }
 
   tbody tr[aria-current="true"] > :is(td, th):first-child {
@@ -387,8 +387,8 @@ const tableStyles = `
     content: attr(data-label);
     font-size: 0.74rem;
     font-weight: 700;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
+    letter-spacing: normal;
+    text-transform: none;
     color: var(--boe-token-text-text-secondary, #6f6f6f);
     align-self: center;
   }
@@ -409,7 +409,7 @@ const tableStyles = `
   }
   ${scope} tr[part="row"] > :is(td, th) { display: contents; background: transparent; box-shadow: none; }
   ${scope} tr[part="row"][aria-selected="true"] {
-    background: color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 10%, transparent);
+    background: var(--boe-token-surface-item-surface-selected, color-mix(in srgb, var(--boe-token-surface-surface-brand, #0061d5) 10%, transparent));
   }
   ${scope} tr[part="row"][aria-current="true"] {
     box-shadow: inset 3px 0 0 var(--boe-token-surface-surface-brand, #0061d5);
@@ -796,7 +796,7 @@ export class Table extends BaseElement {
     );
 
     this.headEl.addEventListener("click", event => {
-      const th = (event.target as HTMLElement).closest<HTMLElement>('th[part="sortable"]');
+      const th = (event.target as HTMLElement).closest<HTMLElement>('th[part~="sortable"]');
       if (!th) return;
       this.toggleSort(th.dataset.key ?? "");
     });
@@ -1122,9 +1122,9 @@ export class Table extends BaseElement {
         const sorted = sortKey === column.key;
         const direction = sortDir === "descending" ? "descending" : "ascending";
         const stateLabel = sorted ? `, sorted ${direction}` : ", not sorted";
-        return `<th part="sortable" scope="col" data-key="${escapeHtml(column.key)}"${align}${span} aria-sort="${sorted ? direction : "none"}"><button type="button" part="sort-button" aria-label="Sort by ${escapeHtml(column.label)}${stateLabel}">${escapeHtml(column.label)}<span class="boe-sort-arrow" aria-hidden="true"></span></button></th>`;
+        return `<th part="header-cell sortable" scope="col" data-key="${escapeHtml(column.key)}"${align}${span} aria-sort="${sorted ? direction : "none"}"><button type="button" part="sort-button" aria-label="Sort by ${escapeHtml(column.label)}${stateLabel}">${escapeHtml(column.label)}<span class="boe-sort-arrow" aria-hidden="true"></span></button></th>`;
       }
-      return `<th scope="col"${align}${span}>${escapeHtml(column.label)}</th>`;
+      return `<th part="header-cell" scope="col"${align}${span}>${escapeHtml(column.label)}</th>`;
     };
     const groupOf = (column: TableColumn): string => typeof column.group === "string" ? column.group : "";
     const grouped = columns.some(column => Boolean(groupOf(column)));
@@ -1145,11 +1145,11 @@ export class Table extends BaseElement {
       }
     }
     const detailHeader = expandable
-      ? `<th scope="col" aria-label="Row details"${grouped ? ' rowspan="2"' : ""}><span class="boe-sr-only">Details</span></th>` : "";
-    const actionsHeader = hasActions ? `<th scope="col"${grouped ? ' rowspan="2"' : ""}>Actions</th>` : "";
+      ? `<th part="header-cell" scope="col" aria-label="Row details"${grouped ? ' rowspan="2"' : ""}><span class="boe-sr-only">Details</span></th>` : "";
+    const actionsHeader = hasActions ? `<th part="header-cell" scope="col"${grouped ? ' rowspan="2"' : ""}>Actions</th>` : "";
     if (grouped) {
       const groups = runs.map(run => run.group
-        ? `<th scope="colgroup" colspan="${run.columns.length}">${escapeHtml(run.group)}</th>`
+        ? `<th part="header-cell" scope="colgroup" colspan="${run.columns.length}">${escapeHtml(run.group)}</th>`
         : headerCell(run.columns[0]!, 2)).join("");
       const leaves = columns.filter(column => Boolean(groupOf(column))).map(column => headerCell(column)).join("");
       this.headEl.innerHTML = `<tr part="group-header-row">${detailHeader}${groups}${actionsHeader}</tr><tr part="header-row">${leaves}</tr>`;

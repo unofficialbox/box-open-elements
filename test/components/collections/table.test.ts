@@ -90,7 +90,7 @@ describe("Table", () => {
     const el = create("none");
     const sorted = vi.fn();
     el.addEventListener("sort", sorted);
-    (el.shadowRoot?.querySelector('th[part="sortable"]') as HTMLElement).click();
+    (el.shadowRoot?.querySelector('th[part~="sortable"]') as HTMLElement).click();
     expect(sorted).toHaveBeenCalledTimes(1);
     expect(sorted.mock.calls[0][0].detail).toEqual({ key: "name", direction: "ascending" });
   });
@@ -100,7 +100,7 @@ describe("Table", () => {
     // A native button gives focus, Enter and Space for free; a bare th with a
     // click listener gives none of them.
     const button = el.shadowRoot?.querySelector(
-      'th[part="sortable"] button[part="sort-button"]',
+      'th[part~="sortable"] button[part="sort-button"]',
     ) as HTMLButtonElement | null;
     expect(button).not.toBeNull();
 
@@ -1214,4 +1214,27 @@ it.each(['none','single','multiple'])("does not cancel Enter or Space from a clo
  const el=create(mode);el.rows=[{id:'1',cells:{name:'A'},detail:'Rich detail'}];el.shadowRoot!.querySelector<HTMLButtonElement>('[part="expander"]')!.click();
  const host=document.createElement('div');host.slot='detail-1';const shadow=host.attachShadow({mode:'closed'});const link=document.createElement('a');link.href='#detail';link.textContent='Details';shadow.append(link);el.append(host);
  for(const key of ['Enter',' ']){const event=new KeyboardEvent('keydown',{key,bubbles:true,composed:true,cancelable:true});link.dispatchEvent(event);expect(event.defaultPrevented).toBe(false);}expect(el.selectedIds).toEqual([]);el.remove();
+});
+
+
+it("exposes every header cell for theming, including grouped and utility headers (#617)", () => {
+  const el = new Table();
+  el.columns = [
+    { key: "name", label: "Run name", sortable: true },
+    { key: "owner", label: "Run owner", group: "Run details" },
+    { key: "status", label: "Run status", group: "Run details" },
+  ];
+  el.rows = [{ id: "1", cells: { name: "Run", owner: "Alex", status: "Ready" },
+    detail: "Details", actions: [{ key: "open", label: "Open" }] }];
+  document.body.append(el);
+  const headers = [...el.shadowRoot!.querySelectorAll("thead th")];
+  expect(headers.length).toBeGreaterThan(3);
+  expect(headers.every(header => header.getAttribute("part")?.split(" ").includes("header-cell"))).toBe(true);
+  const sortable = el.shadowRoot!.querySelector('th[part~="sortable"]')!;
+  expect(sortable.getAttribute("part")?.split(" ").includes("header-cell")).toBe(true);
+  const sorted = vi.fn();
+  el.addEventListener("sort", sorted);
+  sortable.querySelector("button")!.click();
+  expect(sorted.mock.calls[0][0].detail).toEqual({ key: "name", direction: "ascending" });
+  el.remove();
 });

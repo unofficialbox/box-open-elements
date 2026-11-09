@@ -55,7 +55,9 @@ const drawerStyles = `
 
   [part="drawer"] {
     width: min(var(--drawer-size, ${boePanel.drawerWidth}), calc(100vw - 2rem));
-    height: 100%;
+    box-sizing: border-box;
+    height: 100dvh;
+    max-height: 100dvh;
     display: grid;
     grid-template-rows: auto minmax(0, 1fr) auto;
     background: ${boePanel.background};
@@ -101,7 +103,7 @@ const drawerStyles = `
     [part="drawer"][data-position="bottom"] {
       width: 100vw;
       max-width: none;
-      height: 100%;
+      height: 100dvh;
       border: 0;
       border-radius: 0;
     }

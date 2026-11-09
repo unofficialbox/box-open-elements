@@ -129,3 +129,36 @@ it("preserves metric health beside a persistent live data-state message",()=>{
   card.state="ready";expect(live.textContent).toBe("");
   card.statusMessage="Cached at 09:00";expect(live.textContent).toBe("Cached at 09:00");card.remove();
 });
+
+
+it("reflects plain and headline presentation independently of status and preserves action identity (#619)", () => {
+  const card = new MetricCard();
+  expect(card.variant).toBe("default");
+  expect(card.emphasis).toBe("default");
+  card.setAttribute("variant", "unknown");
+  card.setAttribute("emphasis", "unknown");
+  expect(card.variant).toBe("default");
+  expect(card.emphasis).toBe("default");
+  card.heading = "Successful runs";
+  card.value = "1,234";
+  card.action = { id: "details", label: "Details" };
+  document.body.append(card);
+  const action = card.shadowRoot!.querySelector("button")!;
+  card.variant = "plain";
+  card.emphasis = "primary";
+  card.size = "compact";
+  card.tone = "success";
+  expect(card.getAttribute("variant")).toBe("plain");
+  expect(card.getAttribute("emphasis")).toBe("primary");
+  expect(card.shadowRoot!.querySelector("h2")?.textContent).toBe("Successful runs");
+  expect(card.shadowRoot!.querySelector('[part="value"]')?.textContent).toBe("1,234");
+  expect(card.shadowRoot!.querySelector('[part="value"]')?.getAttribute("data-tone")).toBe("success");
+  expect(card.shadowRoot!.querySelector("button")).toBe(action);
+  card.variant = "default";
+  card.emphasis = "default";
+  card.removeAttribute("variant");
+  card.removeAttribute("emphasis");
+  expect(card.variant).toBe("default");
+  expect(card.emphasis).toBe("default");
+  card.remove();
+});

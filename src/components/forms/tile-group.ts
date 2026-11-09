@@ -46,6 +46,8 @@ export const isTileOptionRecord = (value: unknown): value is TileOption => {
 const tileStyles = `
   :host {
     display: block;
+    min-inline-size: 0;
+    container-type: inline-size;
     color: inherit;
     font: inherit;
   }
@@ -55,6 +57,7 @@ const tileStyles = `
   }
 
   [part="group"] {
+    min-inline-size: 0;
     display: grid;
     /* Tiles carry a label and often a description, so they need width to be
        worth choosing over radios. Below the minimum they stack rather than
@@ -76,7 +79,7 @@ const tileStyles = `
     display: none;
   }
 
-  [part="tile"] {
+  [part~="tile"] {
     position: relative;
     display: grid;
     gap: 0.2rem;
@@ -87,16 +90,16 @@ const tileStyles = `
     cursor: pointer;
   }
 
-  [part="tile"]:hover:not([data-disabled="true"]) {
+  [part~="tile"]:hover:not([data-disabled="true"]) {
     background: var(--boe-token-surface-surface-hover, #f4f4f4);
   }
 
-  [part="tile"][data-selected="true"] {
+  [part~="tile"][data-selected="true"] {
     border-color: var(--boe-token-surface-surface-brand, #0061d5);
     background: var(--boe-token-surface-item-surface-selected, #f2f7fd);
   }
 
-  [part="tile"][data-disabled="true"] {
+  [part~="tile"][data-disabled="true"] {
     cursor: not-allowed;
     opacity: 0.5;
   }
@@ -104,7 +107,7 @@ const tileStyles = `
   /* The ring is drawn on the tile the native control sits inside, because the
      control itself is visually hidden — without this, keyboard focus would be
      invisible. */
-  [part="tile"]:has(input:focus-visible) {
+  [part~="tile"]:has(input:focus-visible) {
     box-shadow: ${boeFocusRingShadow};
   }
 
@@ -146,6 +149,36 @@ const tileStyles = `
   [part="tile-status"][data-tone="success"] { color: var(--boe-token-text-status-text-success, #176b45); }
   [part="tile-status"][data-tone="warning"] { color: var(--boe-token-text-status-text-warning, #805500); }
   [part="tile-status"][data-tone="error"] { color: var(--boe-token-text-status-text-error, #ad1b36); }
+  [part="options"] { display: contents; }
+  :host([layout="chips"]) [part="group"] { display: block; }
+  :host([layout="chips"]) [part="options"] {
+    min-inline-size: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    padding: 0.25rem;
+  }
+  :host([layout="chips"]) [part~="tile"] {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    border-radius: 999px;
+    padding: 0.45rem 0.8rem;
+    white-space: nowrap;
+  }
+  :host([layout="chips"]) :is([part="tile-description"], [part="tile-meta"], [part="tile-status"], [part="tile-disabled-reason"]) {
+    display: none;
+  }
+  /* Container width also covers narrow sidebars on a desktop page. Keep
+     space for focus rings inside the scrollport and hint at more choices. */
+  @container (max-width: 40rem) {
+    :host([layout="chips"]) [part="options"] {
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      mask-image: linear-gradient(to right, #000 calc(100% - 1rem), transparent);
+      padding-inline-end: 1rem;
+    }
+  }
   .boe-sr-only { position: absolute; inline-size: 1px; block-size: 1px; overflow: hidden; clip-path: inset(50%); }
 `;
 
@@ -166,7 +199,7 @@ const tileStyles = `
  *
  * Use it where the choice deserves explaining — a plan, a permission level, a
  * retention policy — and a bare radio label would not have room. Where the
- * options are one word each, radios are smaller and better.
+ * options are short, `layout="chips"` presents the same native choices as pills.
  */
 export class TileGroup extends BaseElement {
   static readonly tagName: string = DEFAULT_TAG_NAME;
@@ -179,12 +212,21 @@ export class TileGroup extends BaseElement {
   }
 
   static get observedAttributes(): string[] {
-    return ["legend", "multiple", "name", "options", "value", "disabled", "form"];
+    return ["legend", "multiple", "name", "options", "value", "disabled", "form", "layout"];
   }
 
   private groupEl!: HTMLElement;
   private legendEl!: HTMLElement;
   private optionsSignature = "";
+
+  /** Compact pills for short options; native selection and form behavior stay the same. */
+  get layout(): "tiles" | "chips" {
+    return this.getAttribute("layout") === "chips" ? "chips" : "tiles";
+  }
+
+  set layout(value: "tiles" | "chips") {
+    this.setAttribute("layout", value);
+  }
 
   /** The choices, as JSON. */
   get options(): TileOption[] {
@@ -304,7 +346,7 @@ export class TileGroup extends BaseElement {
 
   private rebuild(): void {
     const type = this.multiple ? "checkbox" : "radio";
-    this.groupEl.innerHTML = this.options
+    this.groupEl.innerHTML = `<div part="options">` + this.options
       .map((option, index) => {
         const id = escapeHtml(option.id);
         const detailsId = `tile-details-${index}`;
@@ -330,15 +372,16 @@ export class TileGroup extends BaseElement {
           </label>
         `;
       })
-      .join("");
+      .join("") + `</div>`;
   }
 
   private syncSelection(): void {
     const selected = new Set(this.selected);
-    this.groupEl.querySelectorAll<HTMLElement>('[part="tile"]').forEach(tile => {
+    this.groupEl.querySelectorAll<HTMLElement>('[part~="tile"]').forEach(tile => {
       const id = tile.dataset.optionId ?? "";
       const isSelected = selected.has(id);
       tile.dataset.selected = isSelected ? "true" : "false";
+      tile.setAttribute("part", isSelected ? "tile tile-selected" : "tile");
       const control = tile.querySelector<HTMLInputElement>('[part="control"]');
       if (control) {
         control.checked = isSelected;
