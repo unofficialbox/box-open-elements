@@ -86,3 +86,17 @@ arrow keys moving between them rather than one tab stop each.
 Automated accessibility checks are not a manual screen-reader pass. Design
 acceptance is a separate review of rendered desktop/mobile output against the
 approved component studies, including density, hierarchy and interaction meaning.
+
+## Metric summaries on the page canvas
+
+`box-metric-card` accepts `variant="plain"` to remove card padding, border,
+radius and background. `emphasis="primary"` enlarges the value to 3rem without
+changing its status tone. Both work with `size="compact"`; their default is
+`"default"`. Values use tabular numerals in every variant. Host CSS can add
+dividers through `::part(card)` when figures share a row.
+
+```html
+<box-metric-card heading="Successful runs" value="1,234"
+  variant="plain" emphasis="primary" size="compact" tone="success">
+</box-metric-card>
+```

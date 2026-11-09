@@ -40,3 +40,26 @@ and checkbox keyboard behavior. A native disabled fieldset, or the host's
 `form` can associate the host with a form by ID outside its ancestors. Form reset
 restores the initial checked selection, including disabled choices, and state
 restoration updates both the public value and checked controls.
+
+## Compact choices
+
+Use `layout="chips"` (or `group.layout = "chips"`) for short labels. Pills wrap
+in wide containers. At container widths of 40rem or less they form one locally
+scrolling row with an edge fade; its legend stays visible. The `options` part
+identifies the scroll container. The fieldset can shrink without widening the
+page. The default `layout="tiles"` retains the card grid.
+
+```html
+<box-tile-group name="scenario" legend="Scenario" layout="chips"
+  options='[{"id":"baseline","label":"Baseline"},{"id":"optimized","label":"Optimized"}]'>
+</box-tile-group>
+```
+
+Chip layout shows the label; description, metadata, status and disabled reason
+remain in the native control's accessible description. Radio/checkbox keyboard
+behavior, disabled choices, selection events and form submission are unchanged.
+Use tiles when that extra context needs to be visible.
+
+Selected choices expose both `tile` and `tile-selected` parts. Style
+`::part(tile-selected)` after `::part(tile)` to retain a distinct selection
+when overriding chip or tile borders and backgrounds.

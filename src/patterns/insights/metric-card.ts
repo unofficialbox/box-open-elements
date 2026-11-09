@@ -107,6 +107,22 @@ const elementStyles = chartStyles + `
           color: var(--boe-token-text-text-secondary, #6f6f6f);
         }
 
+        :host([variant="plain"]) [part="card"] {
+          padding: 0;
+          border: 0;
+          border-radius: 0;
+          background: transparent;
+        }
+
+        :host([variant="plain"]) [part="footer"] {
+          border-top: 0;
+          padding-top: 0;
+        }
+
+        :host([emphasis="primary"]) [part="value"] {
+          font-size: 3rem;
+        }
+
         [part="value"][data-tone="error"] {
           color: var(--boe-token-text-status-text-error, #b92340);
         }
@@ -170,7 +186,7 @@ const elementStyles = chartStyles + `
 export class MetricCard extends ChartElement {
   static readonly tagName: string = DEFAULT_TAG_NAME;
   static get observedAttributes(): string[] {
-    return [...chartAnimationAttributes, "state", "status-message", "action", "eyebrow", "message", "status", "heading", "trend", "value", "size", "tone"];
+    return [...chartAnimationAttributes, "state", "status-message", "action", "eyebrow", "message", "status", "heading", "trend", "value", "size", "tone", "variant", "emphasis"];
   }
   get size(): "default" | "compact" {
     return this.getAttribute("size") === "compact" ? "compact" : "default";
@@ -178,6 +194,24 @@ export class MetricCard extends ChartElement {
 
   set size(value: "default" | "compact") {
     this.setAttribute("size", value);
+  }
+
+  /** Remove the card chrome when figures sit directly on the page canvas. */
+  get variant(): "default" | "plain" {
+    return this.getAttribute("variant") === "plain" ? "plain" : "default";
+  }
+
+  set variant(value: "default" | "plain") {
+    this.setAttribute("variant", value);
+  }
+
+  /** Highlight a headline figure independently of its status tone. */
+  get emphasis(): "default" | "primary" {
+    return this.getAttribute("emphasis") === "primary" ? "primary" : "default";
+  }
+
+  set emphasis(value: "default" | "primary") {
+    this.setAttribute("emphasis", value);
   }
 
   get tone(): "neutral" | "error" | "warning" | "success" {

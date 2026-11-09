@@ -211,3 +211,20 @@ DOCKER_DEFAULT_PLATFORM=linux/amd64 bash tools/preview/container-run.sh \
 
 
 Both Enter and Space select a focused selectable row. In multiple mode, either key toggles that row. Keys on nested links, inputs, buttons and expanders retain their native behavior and do not also select the row.
+
+## Header typography
+
+Headers and stacked phone labels preserve the supplied sentence case. Every
+column header, including grouped, details and actions headers, exposes
+`::part(header-cell)`. Sortable headers also retain `::part(sortable)`.
+Table text inherits the host font size; set `--boe-table-font-size` to override
+it locally. For example:
+
+```css
+box-table { --boe-table-font-size: 14px; }
+box-table::part(header-cell) { font-weight: 600; }
+```
+
+Selected cells use `--boe-token-surface-item-surface-selected` when supplied,
+with the existing brand tint as fallback. Set this token on the table to change
+selection fill independently of link and focus colors.

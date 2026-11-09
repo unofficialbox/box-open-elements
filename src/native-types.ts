@@ -112,7 +112,7 @@ export interface BoxElementPropertyKeys {
   "box-menu-item": "disabled" | "label" | "selected" | "value";
   "box-metadata-filter-builder": "fields" | "label" | "rules";
   "box-metadata-inspector": "eyebrow" | "heading" | "message" | "sections";
-  "box-metric-card": "action" | "animated" | "animationDelay" | "animationDuration" | "animationEasing" | "animationLoop" | "animationPaused" | "animationPreset" | "animationStagger" | "eyebrow" | "heading" | "message" | "size" | "state" | "status" | "statusMessage" | "tone" | "trend" | "value";
+  "box-metric-card": "action" | "animated" | "animationDelay" | "animationDuration" | "animationEasing" | "animationLoop" | "animationPaused" | "animationPreset" | "animationStagger" | "emphasis" | "eyebrow" | "heading" | "message" | "size" | "state" | "status" | "statusMessage" | "tone" | "trend" | "value" | "variant";
   "box-mixed-chart": "animated" | "animationDelay" | "animationDuration" | "animationEasing" | "animationLoop" | "animationPaused" | "animationPreset" | "animationStagger" | "description" | "heading" | "interpolation" | "selectedId" | "series" | "seriesTokens" | "sizeLabel" | "stacked" | "state" | "statusMessage" | "timeZone" | "unit" | "xFormat" | "xLabel" | "xScale" | "yAxes" | "yFormat" | "yLabel";
   "box-mode-indicator": "detail" | "interactive" | "mode" | "namePrefix";
   "box-multi-select": "description" | "errorMessage" | "hideLabel" | "invalid" | "label" | "name" | "options" | "required" | "value";
@@ -176,7 +176,7 @@ export interface BoxElementPropertyKeys {
   "box-text-area": "description" | "disabled" | "errorMessage" | "hideLabel" | "invalid" | "label" | "name" | "placeholder" | "readonly" | "required" | "rows" | "value";
   "box-text-field": "autocomplete" | "description" | "disabled" | "errorMessage" | "hideLabel" | "invalid" | "label" | "loading" | "name" | "placeholder" | "readonly" | "required" | "reveal" | "revealLabel" | "type" | "valid" | "value";
   "box-thumbnail-card": "cardTitle" | "interactive" | "subtitle";
-  "box-tile-group": "legend" | "multiple" | "name" | "options" | "value";
+  "box-tile-group": "layout" | "legend" | "multiple" | "name" | "options" | "value";
   "box-time-field": "description" | "disabled" | "errorMessage" | "hideLabel" | "invalid" | "label" | "max" | "min" | "name" | "required" | "step" | "value";
   "box-timeline": "composable" | "events" | "hasMore" | "heading";
   "box-toast": "borderless" | "duration" | "heading" | "message" | "mode" | "open" | "tone";

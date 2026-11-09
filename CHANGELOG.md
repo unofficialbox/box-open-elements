@@ -13,6 +13,17 @@ are kept as written.
 
 ---
 
+## 0.46.0 — 2026-11-09
+
+- Constrain drawer panels to the dynamic viewport so long bodies scroll while headers and footers stay visible (#611).
+- Preserve sentence-case table headers and stacked labels, expose `header-cell` on all column headers, and inherit host text size with a `--boe-table-font-size` override; allow independent selection fill through the selected-surface token (#617).
+- Add `layout="chips"` to tile groups: wrapping pills on wide containers and a scrolling row on narrow ones, preserving native selection and form behavior. Allow the fieldset to shrink and expose `tile-selected` for host styling (#618).
+- Add plain and primary-emphasis metric cards, retaining the existing tabular value typography (#619).
+
+- Ship core and all six adapters together at `0.46.0`; core peers require `^0.46.0`. Box Server retains its independent `0.1.0` version. Refresh the registry core pin in a separate PR after publication.
+- Compatibility: table headers and stacked labels now preserve supplied case, and table text follows the host font size. Set `--boe-table-font-size` and `::part(header-cell)` when retaining a custom type scale. The existing `sortable` and `tile` parts remain available alongside their new part names; attribute selectors should match part tokens with `~=`.
+- Validation limitations carried forward: manual screen-reader and physical-device chart acceptance remain unfinished, as does manual tree/diff screen-reader verification. Automated browser checks do not establish downstream host acceptance.
+
 ## 0.45.0 — 2026-10-30
 
 - Add eight provider-neutral chart families: Grouped Bar, Scatter, Bubble, Area, Mixed, Pie, Radar and Polar Area (#613). Typed host data, exact paginated tables, keyboard inspection, controlled selection, missing observations and bounded dense-data rendering share common contracts; no chart fetches or aggregates remote data.
