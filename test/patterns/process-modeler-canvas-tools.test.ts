@@ -29,6 +29,19 @@ describe('Process Modeler canvas tools', () => {
     expect(root.querySelector('[data-command=select-several]')?.getAttribute('aria-pressed')).toBe('false');
     expect(root.querySelector('[part=port]')).not.toBeNull(); element.selectSeveral = true; expect(root.querySelector('[part=port]')).toBeNull();
   });
+  it.each(['pointer', 'several'] as const)('restores %s selection cursor state after a move and refresh', mode => {
+    const { element, canvas, pointer, step } = fixture();
+    if (mode === 'pointer') element.canvasTool = 'pointer'; else element.selectSeveral = true;
+    element.refresh(); expect(canvas.hasAttribute('data-pointer-tool')).toBe(true);
+    pointer('pointerdown', 110, 110, {}, step('a'));
+    pointer('pointermove', 140, 130);
+    expect(canvas.dataset.gesture).toBe('move');
+    pointer('pointerup', 140, 130);
+    expect(canvas.hasAttribute('data-gesture')).toBe(false);
+    expect(canvas.hasAttribute('data-pointer-tool')).toBe(true);
+    element.canvasTool = 'hand'; element.selectSeveral = false;
+    expect(canvas.hasAttribute('data-pointer-tool')).toBe(false);
+  });
   it('honors pre-connected modes and exposes persistent host controls', () => {
     const element = new ProcessModeler(); element.canvasTool = 'pointer'; element.selectSeveral = true;
     const button = document.createElement('button'); button.slot = 'controls-extra'; button.textContent = 'Host action'; element.append(button); document.body.append(element);

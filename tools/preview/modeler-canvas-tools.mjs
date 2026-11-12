@@ -1,4 +1,4 @@
-// #622–#624: source or published-runtime acceptance. Build core before running.
+// #622–#624, #627: source or published-runtime acceptance. Build core before running.
 import { chromium, firefox } from 'playwright-core';
 import { createServer } from 'node:http';
 import { readFileSync, mkdirSync, writeFileSync } from 'node:fs';
@@ -26,6 +26,15 @@ try{
   const canvas=page.locator('#m [part=canvas]'),step=id=>page.locator(`#m [data-box-id=${id}]`),control=cmd=>page.locator(`#m [data-command=${cmd}]`);
   const ids=()=>page.evaluate(()=>m.selectedBoxes.map(b=>b.id).sort());
   const drag=async(from,to)=>{await page.mouse.move(from.x,from.y);await page.mouse.down();await page.mouse.move(to.x,to.y,{steps:8});await page.mouse.up();};
+  // #627: host canvas cursor styling must not override selection affordances by inheritance.
+  const cursorHostStyle=await page.addStyleTag({content:'#m::part(canvas) { cursor: grab; }'});
+  await page.evaluate(()=>{m.load({boxes:[...graph.boxes,{id:'frame',title:'Frame',kind:'loop',node:{},frame:true}],lines:graph.lines});m.layout={boxes:{a:{x:60,y:100},b:{x:360,y:100},c:{x:360,y:400},frame:{x:20,y:500,width:280,height:140}}};});
+  const cursors=()=>page.locator('#m [part=box],#m [part=frame],#m [part=box] strong,#m [part=frame] strong').evaluateAll(elements=>elements.map(el=>getComputedStyle(el).cursor));
+  for(const tool of ['hand','pointer'])for(const several of [false,true]){
+   await page.evaluate(({tool,several})=>{m.canvasTool=tool;m.selectSeveral=several;},{tool,several});
+   const expected=tool==='pointer'||several?'default':'grab',actual=await cursors();assert.ok(actual.length>=8);assert.ok(actual.every(cursor=>cursor===expected),JSON.stringify({tool,several,expected,actual}));
+  }
+  await cursorHostStyle.evaluate(el=>el.remove());await page.evaluate(()=>reset());
   const fitEvidence=[];
   for(const orientation of ['wide','tall']){
    await page.evaluate(orientation=>{m.load({boxes:graph.boxes.slice(0,2),lines:graph.lines});m.layout={boxes:{a:{x:-200,y:75},b:{x:orientation==='wide'?600:-200,y:orientation==='wide'?75:875}}};m.fit();},orientation);
@@ -48,7 +57,7 @@ try{
   await page.keyboard.press('h');assert.equal(await control('tool-hand').getAttribute('aria-pressed'),'true');assert.equal(await canvas.evaluate(el=>getComputedStyle(el).cursor),'grab');
   for(const tool of ['hand','pointer']){
    await page.evaluate(tool=>{reset();m.canvasTool=tool;},tool);const p=await page.evaluate(()=>({position:m.layout.boxes.a,zoom:m.view.zoom})),r=await step('a').boundingBox();
-   await drag({x:r.x+r.width/4,y:r.y+r.height/2},{x:r.x+r.width/4+30,y:r.y+r.height/2+20});const next=await page.evaluate(()=>m.layout.boxes.a);assert.ok(Math.abs(next.x-p.position.x-30/p.zoom)<2);assert.ok(Math.abs(next.y-p.position.y-20/p.zoom)<2);
+   await page.mouse.move(r.x+r.width/4,r.y+r.height/2);await page.mouse.down();await page.mouse.move(r.x+r.width/4+30,r.y+r.height/2+20,{steps:8});assert.equal(await step('a').evaluate(el=>getComputedStyle(el).cursor),'grabbing');await page.mouse.up();assert.equal(await step('a').evaluate(el=>getComputedStyle(el).cursor),tool==='pointer'?'default':'grab');const next=await page.evaluate(()=>m.layout.boxes.a);assert.ok(Math.abs(next.x-p.position.x-30/p.zoom)<2);assert.ok(Math.abs(next.y-p.position.y-20/p.zoom)<2);
   }
   await page.locator('#host').click();assert.equal(await page.evaluate(()=>hostClicks),1);
   await page.evaluate(()=>{const field=document.createElement('input');field.slot='controls-extra';field.id='host-input';field.setAttribute('aria-label','Host control input');m.append(field);});
