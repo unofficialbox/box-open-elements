@@ -13,6 +13,12 @@ are kept as written.
 
 ---
 
+## 0.47.1 — 2026-11-12
+
+- Give Process Modeler steps and frames an explicit default arrow cursor in Pointer or Select several mode, so host canvas cursor styling cannot make them appear as grab targets. Both tools still move steps and frames; active moves show `grabbing` (#627).
+- Release core and all six adapters at `0.47.1` with core peers `^0.47.1`; Box Server retains its independent version. Refresh the registry core pin after publication.
+- Existing manual screen-reader, physical-device chart and downstream host acceptance limitations remain as documented in 0.47.0.
+
 ## 0.47.0 — 2026-11-12
 
 - Center Process Modeler Fit on the actual process bounds, including frames, notes and sections, with a minimum 20px margin; initial Fit centers spare vertical space while preserving readable zoom and saved-view precedence (#622).
