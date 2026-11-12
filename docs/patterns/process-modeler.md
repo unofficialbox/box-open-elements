@@ -559,7 +559,7 @@ Readonly/disabled connection policies and stale selection sessions prevent edits
 `canvas-tool="hand"` / `canvasTool = "hand"` preserves background panning and
 is the default. `canvas-tool="pointer"` draws a replacement selection box on
 background drag. Steps remain draggable with either tool. V chooses Pointer; H
-chooses Hand while focus is in the canvas, excluding buttons and editable fields.
+chooses Hand while focus is in the canvas, including the canvas controls, but excluding editable fields and host-handled keys.
 Modified shortcuts such as Ctrl/Command+V retain their normal behavior. Both
 tool buttons expose `aria-pressed`.
 

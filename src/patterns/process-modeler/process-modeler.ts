@@ -1744,14 +1744,14 @@ export class ProcessModeler<
     if (event.defaultPrevented) return;
     const target = event.target as HTMLElement;
     this.pointerFocusId = undefined;
+    if (!target.closest('input,textarea,select,[contenteditable]') && !event.ctrlKey && !event.metaKey && !event.altKey && ['v', 'h'].includes(event.key.toLowerCase())) {
+      event.preventDefault(); this.canvasTool = event.key.toLowerCase() === 'v' ? 'pointer' : 'hand'; return;
+    }
     if (target.closest("input,textarea,select,[contenteditable],button,summary") && !(event.key === "Escape" && (this.frameResize || this.connecting || this.pendingReattach || this.portDrag || this.endDrag))) return;
     if (target.closest('[part=canvas]') && !event.ctrlKey && !event.metaKey && !event.altKey && ['+', '=', '-', '0'].includes(event.key)) {
       event.preventDefault();
       this.zoomBy(event.key === '0' ? 1 / this.viewport.zoom : event.key === '-' ? 1 / 1.2 : 1.2);
       return;
-    }
-    if (!event.ctrlKey && !event.metaKey && !event.altKey && ['v', 'h'].includes(event.key.toLowerCase())) {
-      event.preventDefault(); this.canvasTool = event.key.toLowerCase() === 'v' ? 'pointer' : 'hand'; return;
     }
     if (event.key === ' ' && !event.ctrlKey && !event.metaKey && !event.altKey) {
       event.preventDefault();

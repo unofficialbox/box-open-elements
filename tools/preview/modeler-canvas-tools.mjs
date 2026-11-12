@@ -40,6 +40,7 @@ try{
   await page.keyboard.press('Space');assert.deepEqual(await ids(),['a','b']);
   await step('b').focus();await page.keyboard.press('Alt+ArrowDown');assert.equal(await step('c').evaluate(el=>el.getRootNode().activeElement===el),true);assert.deepEqual(await ids(),['a','b']);
   await page.evaluate(()=>m.selectSeveral=false);await canvas.focus();await page.keyboard.press('v');assert.equal(await control('tool-pointer').getAttribute('aria-pressed'),'true');assert.equal(await canvas.evaluate(el=>getComputedStyle(el).cursor),'default');
+  await control('tool-hand').click();await page.keyboard.press('v');assert.equal(await page.evaluate(()=>m.canvasTool),'pointer');await page.keyboard.press('h');assert.equal(await page.evaluate(()=>m.canvasTool),'hand');await canvas.focus();await page.keyboard.press('v');
   await page.evaluate(()=>m.select('c'));
   const a=await step('a').boundingBox(),b=await step('b').boundingBox();await drag({x:a.x-12,y:a.y-12},{x:b.x+b.width+12,y:b.y+b.height+12});assert.deepEqual(await ids(),['a','b']);
   await canvas.focus();const before=await page.evaluate(()=>m.view);await page.keyboard.down('Space');assert.equal(await canvas.evaluate(el=>getComputedStyle(el).cursor),'grab');

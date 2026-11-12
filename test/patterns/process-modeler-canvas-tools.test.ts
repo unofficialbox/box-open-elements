@@ -42,6 +42,8 @@ describe('Process Modeler canvas tools', () => {
     const { element, root, canvas, key } = fixture();
     key('v'); expect(element.canvasTool).toBe('pointer'); key('H'); expect(element.canvasTool).toBe('hand');
     key('v', canvas, { ctrlKey: true }); expect(element.canvasTool).toBe('hand');
+    const hand = root.querySelector<HTMLElement>('[data-command=tool-hand]')!; hand.focus(); key('v', hand); expect(element.canvasTool).toBe('pointer'); key('h', hand); expect(element.canvasTool).toBe('hand');
+    const prevented = new KeyboardEvent('keydown', { key: 'v', bubbles: true, cancelable: true }); prevented.preventDefault(); hand.dispatchEvent(prevented); expect(element.canvasTool).toBe('hand');
     const input = root.querySelector('input')!; expect(key('v', input).defaultPrevented).toBe(false); expect(element.canvasTool).toBe('hand');
     (root.querySelector('[data-command=tool-pointer]') as HTMLElement).click(); expect(element.canvasTool).toBe('pointer');
     (root.querySelector('[data-command=tool-hand]') as HTMLElement).click(); expect(element.canvasTool).toBe('hand');
