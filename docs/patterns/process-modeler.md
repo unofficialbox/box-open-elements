@@ -226,8 +226,9 @@ redo only when local history can handle them; empty or locked history leaves
 the key for the host. Escape closes an open View menu or cancels a connection
 or reattachment before changing selection. When no action is in progress, Escape clears the selection and returns the details to the process tabs. An idle Escape does not announce a cancelled connection.
 
-Background drag, Space-drag over a step, and trackpad scroll pan; Control-wheel and two-pointer pinch
-zoom. The floating controls offer zoom, 100% reset, fit, snap and lock. The
+The default hand tool pans on background drag. Space-drag and trackpad scroll
+pan; Control-wheel and two-pointer pinch zoom. The floating controls offer
+zoom, 100% reset, centered Fit, pointer/hand tools, Select several, snap and lock. The
 208×136 overview is keyboard reachable: arrows pan and Enter fits. The
 floating toolbar changes for one box, multiple boxes or one line. Selected
 line endpoints can be dragged or keyboard-activated for reattachment; a hand-
@@ -552,3 +553,66 @@ leave it unapplied. Controlled echoes retain the focused line control and caret.
 Leads to lists the connected target names, offers native icon removal and a
 same-level unconnected target select, and omits terminal-step connections.
 Readonly/disabled connection policies and stale selection sessions prevent edits.
+
+## Pointer and additive selection tools
+
+`canvas-tool="hand"` / `canvasTool = "hand"` preserves background panning and
+is the default. `canvas-tool="pointer"` draws a replacement selection box on
+background drag. Steps remain draggable with either tool. V chooses Pointer; H
+chooses Hand while focus is in the canvas, excluding buttons and editable fields.
+Modified shortcuts such as Ctrl/Command+V retain their normal behavior. Both
+tool buttons expose `aria-pressed`.
+
+Enable the boolean `select-several` attribute or `selectSeveral = true` to
+add/remove steps with a tap or click, preserving existing selections when focus
+moves by Tab or Alt+arrow. Space on the focused step toggles it once per press;
+the live region announces the added/removed step count. Enter retains the
+existing explicit edit action, selecting the focused step before opening details. Background drag adds
+a selection box, and the cursor becomes an arrow. Add/connect handles are
+hidden in this mode so their hit areas cannot intercept taps on small steps.
+Turn the mode off to restore those handles and normal focus-driven selection.
+
+Shift-click and Shift-drag remain additive without enabling the mode. Persistent
+Select several takes precedence over the chosen tool for background selection.
+Holding Space on the canvas background temporarily pans with either tool;
+without Select several, holding Space on a focused step also pans. Two-finger
+pinch still zooms. The existing lock prevents movement and marquee gestures.
+Selection tools do not change the host's process document or persist themselves.
+
+```mermaid
+flowchart TD
+  A[Background drag] --> B{Space held?}
+  B -->|Yes| P[Pan]
+  B -->|No| C{Select several, Shift, or Pointer?}
+  C -->|Yes| S[Select with a box]
+  C -->|No| P
+```
+
+Mode changes through attributes, properties, controls or keyboard emit bubbling,
+composed notifications only when the normalized value changes:
+
+| Event | Detail |
+| --- | --- |
+| `canvastoolchange` | `{ canvasTool: "hand" \| "pointer" }` |
+| `selectseveralchange` | `{ selectSeveral: boolean }` |
+
+The existing `selection-changed` event continues to describe selected items. A
+host may remember modes by listening to these two notifications and restoring
+the reflected properties. Unknown `canvas-tool` values normalize to `hand`.
+
+```html
+<box-process-modeler canvas-tool="pointer" select-several>
+  <button slot="controls-extra" type="button" id="show-source">Source</button>
+</box-process-modeler>
+```
+
+The `controls-extra` slot (also exposed as a part) appends host-owned controls
+to the floating toolbar, preserves their light-DOM identity and event handlers
+through refreshes, and wraps within narrow canvases. Style these buttons in the
+host; do not append into the shadow root.
+
+`fit()` / **Fit the whole process** centers the actual bounds on both axes when
+space is available, with a minimum 20px edge margin. It includes frame sizes,
+notes and sections rather than counting empty space back to the document origin.
+The existing 25% zoom floor remains. Initial `initial-view="fit"` also centers
+spare space while retaining its readable zoom floor and saved-view precedence.

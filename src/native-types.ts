@@ -133,7 +133,7 @@ export interface BoxElementPropertyKeys {
   "box-presence": "label" | "max" | "transport" | "users";
   "box-preview-element": "actions" | "adapterState" | "heading" | "itemLabel" | "message" | "provider" | "providerAdapter" | "providerLabel" | "status";
   "box-preview-header": "actions" | "breadcrumbs" | "heading" | "message" | "status";
-  "box-process-modeler": "catalog" | "connections" | "connectionsHelp" | "detail" | "disableConnections" | "document" | "embedMode" | "fields" | "headingLevel" | "history" | "initialView" | "lastRun" | "layout" | "locked" | "model" | "outline" | "processSummary" | "processTitle" | "renderInspector" | "selectedPath" | "showLastRun" | "snapToGrid" | "variables" | "variablesEditable";
+  "box-process-modeler": "canvasTool" | "catalog" | "connections" | "connectionsHelp" | "detail" | "disableConnections" | "document" | "embedMode" | "fields" | "headingLevel" | "history" | "initialView" | "lastRun" | "layout" | "locked" | "model" | "outline" | "processSummary" | "processTitle" | "renderInspector" | "selectSeveral" | "selectedPath" | "showLastRun" | "snapToGrid" | "variables" | "variablesEditable";
   "box-progress-bar": "hideLabel" | "label" | "max" | "value";
   "box-progress-ring": "label" | "max" | "size" | "value";
   "box-progress-steps": "compact" | "items" | "label" | "value";
@@ -576,6 +576,7 @@ export interface BoxElementEventMap {
     "breadcrumb-selected": CustomEvent<{ id: string; }>;
   };
   "box-process-modeler": {
+    "canvastoolchange": CustomEvent<{ canvasTool: "hand" | "pointer"; }>;
     "connection-setup-request": CustomEvent<{}>;
     "detail-changed": CustomEvent<{ detail: "business" | "technical"; }>;
     "layout-changed": CustomEvent<{ layout: import("./patterns/process-modeler/model.js").ProcessLayout; }>;
@@ -593,6 +594,7 @@ export interface BoxElementEventMap {
     "projection-changed": CustomEvent<{ projection: import("./patterns/process-modeler/model.js").ProcessProjection<unknown>; version: string | number; checks: readonly import("./patterns/process-modeler/model.js").ProcessCheck[]; }>;
     "readable-projection-changed": CustomEvent<{ projection: import("./patterns/process-modeler/model.js").ProcessProjection<unknown>; version: string | number; }>;
     "selection-changed": CustomEvent<{ selection?: readonly import("./patterns/process-modeler/model.js").ProcessSelectionItem[] | undefined; box: import("./patterns/process-modeler/model.js").ProcessBox<unknown> | null; boxes: readonly import("./patterns/process-modeler/model.js").ProcessBox<unknown>[]; path: import("./patterns/flow-builder/model.js").NodePath | null; } | { selection?: readonly import("./patterns/process-modeler/model.js").ProcessSelectionItem[] | undefined; box: null; boxes: never[]; line: import("./patterns/process-modeler/model.js").ProcessLine | null; path: null; }>;
+    "selectseveralchange": CustomEvent<{ selectSeveral: boolean; }>;
   };
   "box-progress-bar": {};
   "box-progress-ring": {};

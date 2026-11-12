@@ -32,6 +32,8 @@ import {
 
 /** Source-owned contracts for notifications forwarded through the acceptance queue. */
 export interface ProcessModelerEventDetails {
+  'canvastoolchange': { canvasTool: 'hand' | 'pointer' };
+  'selectseveralchange': { selectSeveral: boolean };
   'note-move-request': { noteIds: readonly string[]; notes: readonly NonNullable<ProcessLayout['notes']>[number][] };
   'process-copy-request': ProcessCopyRequest;
   'process-selection-copy-request': ProcessCopyRequest;
@@ -82,7 +84,35 @@ export class ProcessModeler<
 > extends BaseElement {
   static readonly tagName = "box-process-modeler";
   static get observedAttributes(): string[] {
-    return ["locked", "snap-to-grid", "heading-level", "disable-connections", "embed-mode", "initial-view"];
+    return ["locked", "snap-to-grid", "heading-level", "disable-connections", "embed-mode", "initial-view", "canvas-tool", "select-several"];
+  }
+  /** Background drag tool. Hand preserves the default pan interaction. */
+  get canvasTool(): 'hand' | 'pointer' { return this.getAttribute('canvas-tool') === 'pointer' ? 'pointer' : 'hand'; }
+  set canvasTool(value: 'hand' | 'pointer') { this.setAttribute('canvas-tool', value); }
+  /** Persistent additive selection for touch and keyboard users. */
+  get selectSeveral(): boolean { return this.hasAttribute('select-several'); }
+  set selectSeveral(value: boolean) { this.toggleAttribute('select-several', value); }
+  attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null): void {
+    super.attributeChangedCallback(name, oldValue, newValue);
+    if (name === 'canvas-tool' && (oldValue === 'pointer') !== (newValue === 'pointer'))
+      emit(this, 'canvastoolchange', { canvasTool: this.canvasTool });
+    if (name === 'select-several' && (oldValue !== null) !== (newValue !== null))
+      emit(this, 'selectseveralchange', { selectSeveral: this.selectSeveral });
+  }
+  private syncCanvasTools(): void {
+    if (!this.isRendered) return;
+    const root = this.shadowRoot!, canvas = root.querySelector<HTMLElement>('[part=canvas]')!;
+    canvas.toggleAttribute('data-pointer-tool', this.selectSeveral || this.canvasTool === 'pointer');
+    canvas.toggleAttribute('data-space-pan', this.spacePressed);
+    for (const tool of ['hand', 'pointer']) root.querySelector(`[data-command=tool-${tool}]`)?.setAttribute('aria-pressed', String(this.canvasTool === tool));
+    root.querySelector('[data-command=select-several]')?.setAttribute('aria-pressed', String(this.selectSeveral));
+  }
+  private toggleBoxSelection(id: string): void {
+    const selected = this.selectedIds.has(id);
+    if (this.graphSelection || this.selectedLineIds.size || this.selectedNoteIds.size)
+      this.selectItems(selected ? this.selection.filter(item => item.type !== 'box' || item.id !== id) : [...this.selection, { type: 'box', id }]);
+    else this.selectMany(selected ? [...this.selectedIds].filter(value => value !== id) : [...this.selectedIds, id]);
+    if (this.selectSeveral) this.setStatus(`${selected ? 'Removed' : 'Added'}: ${this.selectedBoxes.length} ${this.selectedBoxes.length === 1 ? 'step' : 'steps'} selected`);
   }
   private pendingInitialFit = false;
   private pendingSelectionReveal = false;
@@ -185,6 +215,7 @@ export class ProcessModeler<
   private segmentDrag?: { pointerId: number; id: string; index: number; points: { x: number; y: number }[]; original: { x: number; y: number }[]; start: { x: number; y: number } };
   private frameResize?: { pointerId: number; id: string; start: { x: number; y: number }; width: number; height: number };
   private spacePressed = false;
+  private pointerFocusId?: string;
   private dropLine?: string;
   private paletteDragKind: ProcessKind | null = null;
   private palettePointer?: { kind: ProcessKind; id: number; x: number; y: number; moved: boolean };
@@ -273,7 +304,7 @@ export class ProcessModeler<
     this.lastProjection = "";
     this.lastReadableProjection = "";
     this.readableValue = null;
-    this.marquee = undefined; this.pointers.clear();
+    this.marquee = undefined; this.pointers.clear(); this.pointerFocusId = undefined;
     this.drag = undefined; this.portDrag = undefined; this.endDrag = undefined; this.segmentDrag = undefined; this.frameResize = undefined; this.pendingReattach = undefined;
     const canvas = this.shadowRoot?.querySelector<HTMLElement>('[part=canvas]'); if (canvas) delete canvas.dataset.gesture;
     this.autoNoteHeights.clear();
@@ -448,6 +479,7 @@ export class ProcessModeler<
     this.cleanupInspector = undefined;
     this.inspected = undefined;
     this.pointers.clear();
+    this.spacePressed = false; this.pointerFocusId = undefined;
     const canvas = this.shadowRoot?.querySelector<HTMLElement>('[part=canvas]'); if (canvas) delete canvas.dataset.gesture;
     this.drag = undefined;
     this.portDrag = undefined; this.endDrag = undefined; this.pendingReattach = undefined; this.marquee = undefined; this.segmentDrag = undefined;
@@ -892,7 +924,7 @@ export class ProcessModeler<
     this.viewport = {
       zoom,
       x: contentWidth * zoom > width - 2 * padX ? padX - x * zoom : width / 2 - (x + contentWidth / 2) * zoom,
-      y: contentHeight * zoom > height - 2 * padY ? padY - y * zoom : (height - 40) / 2 - (y + contentHeight / 2) * zoom,
+      y: contentHeight * zoom > height - 2 * padY ? padY - y * zoom : height / 2 - (y + contentHeight / 2) * zoom,
     };
     return true;
   }
@@ -909,8 +941,8 @@ export class ProcessModeler<
         ((canvas.clientHeight || 480) - 40) / bounds.height,
       ),
     );
-    this.viewport.x = 20 - bounds.x * this.viewport.zoom;
-    this.viewport.y = 20 - bounds.y * this.viewport.zoom;
+    this.viewport.x = Math.max(20, ((canvas.clientWidth || 700) - bounds.width * this.viewport.zoom) / 2) - bounds.x * this.viewport.zoom;
+    this.viewport.y = Math.max(20, ((canvas.clientHeight || 480) - bounds.height * this.viewport.zoom) / 2) - bounds.y * this.viewport.zoom;
     this.paintViewport();
   }
   private minimapBounds(canvas: HTMLElement) {
@@ -927,24 +959,19 @@ export class ProcessModeler<
     return { x: x - pad - (width - (right - x + 2 * pad)) / 2, y: y - pad - (height - (bottom - y + 2 * pad)) / 2, width, height };
   }
   private bounds() {
-    const positions = this.projection.boxes.map(
-      (box) => this.layoutValue.boxes[box.id],
-    );
-    const x = Math.min(0, ...positions.map((pos) => pos.x));
-    const y = Math.min(0, ...positions.map((pos) => pos.y));
-    return {
-      x,
-      y,
-      width:
-        Math.max(100, ...positions.map((pos) => pos.x + (pos.width ?? 224))) -
-        x,
-      height:
-        Math.max(100, ...positions.map((pos) => pos.y + (pos.height ?? 64))) -
-        y,
-    };
+    const rectangles = [
+      ...this.projection.boxes.map(box => ({ ...this.layoutValue.boxes[box.id], ...this.selectionDimensions(box) })),
+      ...(this.layoutValue.sections ?? []),
+      ...(this.layoutValue.notes ?? []).map(note => ({ ...note, width: 208, height: 80 })),
+    ];
+    if (!rectangles.length) return { x: 0, y: 0, width: 100, height: 100 };
+    const x = Math.min(...rectangles.map(rect => rect.x)), y = Math.min(...rectangles.map(rect => rect.y));
+    return { x, y, width: Math.max(...rectangles.map(rect => rect.x + rect.width)) - x,
+      height: Math.max(...rectangles.map(rect => rect.y + rect.height)) - y };
   }
+
   protected renderTemplate(): void {
-    this.shadowRoot!.innerHTML = `<style>${processModelerDesign}</style><div part="toolbar" role="toolbar" aria-label="Diagram controls"><button data-command="zoom-out">Zoom out</button><button data-command="reset">100%</button><button data-command="zoom-in">Zoom in</button><button data-command="fit">Fit the whole process</button><button data-command="checks-status" type="button">Checks</button><button data-command="undo">Undo</button><button data-command="redo">Redo</button><button data-command="tidy">Tidy up</button><button data-command="snap" aria-pressed="false">Snap to grid</button><button data-command="lock" aria-pressed="false">Lock diagram</button></div><div part="layout"><div part="canvas" tabindex="0" role="region" aria-label="Process diagram" aria-describedby="process-help"><div part="world"></div><svg part="minimap" role="img" aria-label="Diagram overview. Click to jump"></svg></div><div part="inspector" role="region" aria-label="Process details"><div part="palette"><label>Find a building block<input type="search" part="search"></label><div part="choices"></div></div><div part="editor"></div><div part="checks" role="region" aria-label="Checks"></div></div></div><p part="help" id="process-help">Tab moves between steps. Alt plus an arrow selects the next step that way. Arrows move the selected step; Shift moves it four grid squares. N opens the building-block chooser. Enter edits. Delete removes. Shift plus 1 fits the process. Drag the background to pan; pinch or use the controls to zoom. Escape cancels an action or clears the selection.</p><div part="status" role="status" aria-live="polite"></div><div part="urgent-status" role="alert" aria-live="assertive"></div>`;
+    this.shadowRoot!.innerHTML = `<style>${processModelerDesign}</style><div part="toolbar" role="toolbar" aria-label="Diagram controls"><button data-command="zoom-out">Zoom out</button><button data-command="reset">100%</button><button data-command="zoom-in">Zoom in</button><button data-command="fit">Fit the whole process</button><button data-command="checks-status" type="button">Checks</button><button data-command="undo">Undo</button><button data-command="redo">Redo</button><button data-command="tidy">Tidy up</button><button data-command="snap" aria-pressed="false">Snap to grid</button><button data-command="lock" aria-pressed="false">Lock diagram</button></div><div part="layout"><div part="canvas" tabindex="0" role="region" aria-label="Process diagram" aria-describedby="process-help"><div part="world"></div><svg part="minimap" role="img" aria-label="Diagram overview. Click to jump"></svg></div><div part="inspector" role="region" aria-label="Process details"><div part="palette"><label>Find a building block<input type="search" part="search"></label><div part="choices"></div></div><div part="editor"></div><div part="checks" role="region" aria-label="Checks"></div></div></div><p part="help" id="process-help">Tab moves between steps. Alt plus an arrow selects the next step that way. Arrows move the selected step; Shift moves it four grid squares. N opens the building-block chooser. Enter edits. Delete removes. Shift plus 1 fits the process. V chooses the pointer; H chooses the hand. Pointer drags select; hand drags pan. Select several lets taps and Space toggle steps without clearing selection on focus. Hold Space on the canvas background to pan; pinch or use the controls to zoom. Escape cancels an action or clears the selection.</p><div part="status" role="status" aria-live="polite"></div><div part="urgent-status" role="alert" aria-live="assertive"></div>`;
     const canvas = this.shadowRoot!.querySelector<HTMLElement>('[part=canvas]')!;
     const canvasStack = document.createElement('div'); canvasStack.setAttribute('part', 'canvas-stack');
     canvas.before(canvasStack); canvasStack.append(canvas);
@@ -1115,8 +1142,26 @@ export class ProcessModeler<
       const button = root.querySelector<HTMLButtonElement>(`[data-command=${command}]`);
       if (button) controls.append(button);
     }
+    const divider = document.createElement('span'); divider.setAttribute('part', 'controls-divider'); divider.setAttribute('aria-hidden', 'true');
+    const toolButtons = document.createDocumentFragment(); toolButtons.append(divider);
+    for (const [command, label] of [['tool-pointer', 'Pointer tool (V)'], ['tool-hand', 'Hand tool (H)'], ['select-several', 'Select several steps']]) {
+      const button = document.createElement('button'); button.type = 'button'; button.dataset.command = command;
+      button.textContent = label; button.setAttribute('aria-pressed', 'false');
+      button.onclick = () => {
+        if (command === 'select-several') {
+          this.selectSeveral = !this.selectSeveral;
+          this.setStatus(`Select several ${this.selectSeveral ? 'on. Tap or press Space on a step to toggle it' : 'off'}`);
+        } else this.canvasTool = command === 'tool-pointer' ? 'pointer' : 'hand';
+      };
+      toolButtons.append(button);
+    }
+    controls.insertBefore(toolButtons, controls.querySelector('[part=controls-divider]'));
+    const extra = document.createElement('slot'); extra.name = 'controls-extra'; extra.setAttribute('part', 'controls-extra'); controls.append(extra);
     canvas.append(controls);
     const commandIcons: Record<string, string> = {
+      'tool-pointer': '<path d="m5 3 14 9-7 1-3 7Z"/>',
+      'tool-hand': '<path d="M8 12V5a2 2 0 0 1 4 0v6-6a2 2 0 0 1 4 0v7-4a2 2 0 0 1 4 0v7c0 5-3 7-7 7-3 0-5-2-7-5l-3-4a2 2 0 0 1 3-2l2 1Z"/>',
+      'select-several': '<rect x="3" y="3" width="8" height="8" rx="1"/><rect x="13" y="13" width="8" height="8" rx="1"/><path d="M5 7h4m8 10h2m-1-1v2"/>',
       "zoom-out": '<circle cx="12" cy="12" r="9"/><path d="M8 12h8"/>',
       "zoom-in": '<circle cx="12" cy="12" r="9"/><path d="M8 12h8m-4-4v8"/>',
       fit: '<path d="M4 9V4h5m6 0h5v5m0 6v5h-5m-6 0H4v-5"/>',
@@ -1332,6 +1377,7 @@ export class ProcessModeler<
         ['Click a dot', 'Add a connected step that way'], ['`Alt` `Ctrl` + arrow', 'Add a connected step that way'],
         ["Drag a line's handle", 'Move that part of the line by hand (Reset line undoes it)'], ["Drag a line's end", 'Attach it somewhere else'],
         ['`N`', 'Add the next step'], ['Arrow keys', 'Nudge by one grid square (`Shift` for four)'], ['`Alt` + arrow', 'Go to the nearest step that way'],
+        ['`V` / `H`', 'Pointer / hand tool'], ['`Space`', 'Pan; toggle a focused step in Select several'],
         ['`Enter`', 'Edit the selected step'], ['`Delete`', 'Delete the selection'], ['`Ctrl` `Z` / `Shift` `Z`', 'Undo / redo'],
         ['`Ctrl` `C` `V` `D`', 'Copy, paste, duplicate'], ['`Shift` `1`', 'Fit the whole process'], ['`+` `-` `0`', 'Zoom in, out, 100%'],
         ['Steps view', ''], ['`↑` `↓`', 'Go to the step above or below'], ['`Alt` + `↑` `↓`', 'Move the step up or down its path'], ['`Delete`', 'Delete the step'],
@@ -1540,8 +1586,8 @@ export class ProcessModeler<
       event.stopPropagation();
     }, true);
     canvas.addEventListener("keydown", (event) => this.onKey(event));
-    canvas.addEventListener('keyup', event => { if (event.key === ' ') this.spacePressed = false; });
-    canvas.addEventListener('blur', () => { this.spacePressed = false; }, true);
+    canvas.addEventListener('keyup', event => { if (event.key === ' ') { this.spacePressed = false; this.syncCanvasTools(); } });
+    canvas.addEventListener('blur', () => { this.spacePressed = false; this.syncCanvasTools(); }, true);
     canvas.addEventListener(
       "wheel",
       (event) => {
@@ -1697,13 +1743,23 @@ export class ProcessModeler<
   private onKey(event: KeyboardEvent): void {
     if (event.defaultPrevented) return;
     const target = event.target as HTMLElement;
+    this.pointerFocusId = undefined;
     if (target.closest("input,textarea,select,[contenteditable],button,summary") && !(event.key === "Escape" && (this.frameResize || this.connecting || this.pendingReattach || this.portDrag || this.endDrag))) return;
     if (target.closest('[part=canvas]') && !event.ctrlKey && !event.metaKey && !event.altKey && ['+', '=', '-', '0'].includes(event.key)) {
       event.preventDefault();
       this.zoomBy(event.key === '0' ? 1 / this.viewport.zoom : event.key === '-' ? 1 / 1.2 : 1.2);
       return;
     }
-    if (event.key === ' ') { event.preventDefault(); this.spacePressed = true; return; }
+    if (!event.ctrlKey && !event.metaKey && !event.altKey && ['v', 'h'].includes(event.key.toLowerCase())) {
+      event.preventDefault(); this.canvasTool = event.key.toLowerCase() === 'v' ? 'pointer' : 'hand'; return;
+    }
+    if (event.key === ' ' && !event.ctrlKey && !event.metaKey && !event.altKey) {
+      event.preventDefault();
+      const id = target.closest<HTMLElement>('[data-box-id]')?.dataset.boxId;
+      if (this.selectSeveral && id) { if (!event.repeat) this.toggleBoxSelection(id); }
+      else { this.spacePressed = true; this.syncCanvasTools(); }
+      return;
+    }
     if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "z") {
       if (this.locked || !(event.shiftKey ? this.history.canRedo : this.history.canUndo)) return;
       event.preventDefault();
@@ -1822,7 +1878,8 @@ export class ProcessModeler<
   }
   private navigateSelection(direction: number[]): void {
     const canvas = this.shadowRoot!.querySelector<HTMLElement>('[part=canvas]')!;
-    const box = this.selected;
+    const focused = this.selectSeveral ? (this.shadowRoot!.activeElement as HTMLElement | null)?.closest<HTMLElement>('[data-box-id]')?.dataset.boxId : undefined;
+    const box = this.projection.boxes.find(box => box.id === focused) ?? this.selected;
     const origin = box ? this.layoutValue.boxes[box.id] : undefined;
     const originSize = box ? this.selectionDimensions(box) : undefined;
     const center = origin && originSize
@@ -1839,7 +1896,8 @@ export class ProcessModeler<
     }).filter(item => item.forward > 4).sort((a, b) => a.score - b.score);
     const next = candidates[0]?.candidate;
     if (!next) { this.setStatus('Nothing further that way'); return; }
-    this.select(next.id); this.revealBox(next); this.focusBox(next.id); this.setStatus(`${next.title} selected`);
+    if (!this.selectSeveral) this.select(next.id);
+    this.revealBox(next); this.focusBox(next.id); this.setStatus(`${next.title} ${this.selectSeveral ? "focused" : "selected"}`);
   }
   private schedulePendingView(): void {
     if ((!this.pendingInitialFit && !this.pendingSelectionReveal) || this.pendingViewFrame !== undefined || !this.isConnected || typeof requestAnimationFrame === 'undefined') return;
@@ -1871,7 +1929,8 @@ export class ProcessModeler<
   private pointerDown(event: PointerEvent): void {
     if (event.button !== 0) return;
     this.suppressClick = false;
-    if (this.portDrag || this.endDrag || this.segmentDrag || this.marquee || this.frameResize) return;
+    this.pointerFocusId = undefined;
+    if (this.portDrag || this.endDrag || this.segmentDrag || this.frameResize) return;
     const resize = (event.target as HTMLElement).closest<HTMLElement>('[part=frame-resize]');
     if (resize && !this.locked) {
       event.preventDefault(); event.stopPropagation();
@@ -1917,7 +1976,7 @@ export class ProcessModeler<
       return;
     this.pointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
     if (this.pointers.size === 2) {
-      this.drag = undefined;
+      this.drag = undefined; this.marquee = undefined;
       const [a, b] = [...this.pointers.values()];
       this.pinch = { distance: this.distance(), zoom: this.viewport.zoom,
         anchor: this.canvasPoint({ clientX: (a.x + b.x) / 2, clientY: (a.y + b.y) / 2 }) };
@@ -1928,10 +1987,11 @@ export class ProcessModeler<
       "[data-box-id]",
     );
     const id = target?.dataset.boxId;
+    this.pointerFocusId = id;
     const canvas =
       this.shadowRoot!.querySelector<HTMLElement>("[part=canvas]")!;
-    if (id && !this.spacePressed && !this.selectedIds.has(id) && !event.shiftKey) this.select(id);
-    if (!id && event.shiftKey && !this.locked) { const point = this.canvasPoint(event); this.marquee = { pointerId: event.pointerId, start: point, point, add: this.selection }; canvas.dataset.gesture = 'select'; canvas.setPointerCapture?.(event.pointerId); event.preventDefault(); return; }
+    if (id && !this.spacePressed && !this.selectedIds.has(id) && !event.shiftKey && !this.selectSeveral) this.select(id);
+    if (!id && !this.spacePressed && (event.shiftKey || this.selectSeveral || this.canvasTool === 'pointer') && !this.locked) { const point = this.canvasPoint(event); this.marquee = { pointerId: event.pointerId, start: point, point, add: event.shiftKey || this.selectSeveral ? this.selection : [] }; canvas.dataset.gesture = 'select'; canvas.focus({ preventScroll: true }); canvas.setPointerCapture?.(event.pointerId); event.preventDefault(); return; }
     canvas.dataset.gesture = id && !this.locked && !this.spacePressed ? 'move' : 'pan';
     this.drag = {
       id: this.locked || this.spacePressed ? undefined : id,
@@ -2151,6 +2211,7 @@ export class ProcessModeler<
   private pointerEnd(event: PointerEvent, commit: boolean): void {
     const gesture = this.portDrag ?? this.endDrag ?? this.segmentDrag ?? this.marquee ?? this.frameResize;
     if (gesture && gesture.pointerId !== event.pointerId) return;
+    if (!commit) this.pointerFocusId = undefined;
     delete this.shadowRoot!.querySelector<HTMLElement>('[part=canvas]')!.dataset.gesture;
     if (this.portDrag || this.endDrag) this.paintConnectionRoutes();
     this.shadowRoot!.querySelector('[part=connection-preview-arrow]')?.remove();
@@ -2209,7 +2270,7 @@ export class ProcessModeler<
     if (this.segmentDrag) { const segment = this.segmentDrag; this.segmentDrag = undefined; if (commit) this.routeLine(segment.id, segment.points.slice(1, -1)); else this.refresh(); return; }
     if (this.marquee) {
       const { start, add } = this.marquee; this.marquee = undefined;
-      if (commit) this.selectMarquee(start, point, add);
+      if (commit) { this.selectMarquee(start, point, add); this.setStatus(`Selected: ${this.selectedBoxes.length} ${this.selectedBoxes.length === 1 ? 'step' : 'steps'} selected`); }
       this.shadowRoot!.querySelector('[part=marquee]')?.remove(); this.pointers.delete(event.pointerId); return;
     }
     if (!this.pointers.has(event.pointerId)) return;
@@ -2650,7 +2711,10 @@ export class ProcessModeler<
       const element = document.createElement("div");
       element.tabIndex = 0;
       element.addEventListener('focus', () => {
-        if (!this.restoringBoxFocus && !this.pointers.size && !this.portDrag && !this.endDrag && !this.segmentDrag && !this.marquee && !this.frameResize) { this.select(box.id); if (box.kind !== 'section') this.revealBox(box); }
+        // Touch focuses after pointerup, before click. Revealing here moves the
+        // tapped target away and retargets that click to the canvas.
+        if (this.selectSeveral && this.pointerFocusId === box.id) { this.pointerFocusId = undefined; return; }
+        if (!this.restoringBoxFocus && !this.pointers.size && !this.portDrag && !this.endDrag && !this.segmentDrag && !this.marquee && !this.frameResize) { if (!this.selectSeveral) this.select(box.id); if (box.kind !== 'section') this.revealBox(box); }
       });
       element.setAttribute("role", "group");
       element.setAttribute("part", box.frame ? "frame" : "box");
@@ -2754,16 +2818,18 @@ export class ProcessModeler<
       }
       element.addEventListener("keydown", event => {
         if (event.target !== element) return;
-        // Space reaches the canvas handler so holding it pans from a focused step.
+        // Space reaches the canvas handler for additive toggling or temporary panning.
         // Let Enter reach the canvas handler after selecting the focused step.
         // Cancelling it here prevents the editor from opening and taking focus.
         if (event.key === "Enter") {
           // Connection completion consumes Enter; it must not also edit the target.
           if (this.connecting || this.pendingReattach) event.preventDefault();
-          element.click();
+          if (this.selectSeveral && !this.connecting && !this.pendingReattach) this.select(box.id);
+          else element.click();
         }
       });
       element.addEventListener("click", event => {
+        this.pointerFocusId = undefined;
         if (this.suppressClick && event.detail !== 0) { this.suppressClick = false; return; }
         if (this.pendingReattach) {
           const pending = this.pendingReattach; this.pendingReattach = undefined;
@@ -2778,11 +2844,10 @@ export class ProcessModeler<
           });
           this.connecting = null;
         }
-        if (event.shiftKey && (this.graphSelection || this.selectedLineIds.size || this.selectedNoteIds.size)) this.selectItems(this.selectedIds.has(box.id) ? this.selection.filter(item => item.type !== "box" || item.id !== box.id) : [...this.selection, { type: "box", id: box.id }]);
-        else if (event.shiftKey) this.selectMany(this.selectedIds.has(box.id) ? [...this.selectedIds].filter(id => id !== box.id) : [...this.selectedIds, box.id]);
+        if (event.shiftKey || this.selectSeveral) this.toggleBoxSelection(box.id);
         else this.select(box.id);
       });
-      if (!this.disableConnections && !this.locked && !['end', 'finish', 'section'].includes(box.kind)) {
+      if (!this.disableConnections && !this.locked && !this.selectSeveral && !['end', 'finish', 'section'].includes(box.kind)) {
         for (const side of ["north", "east", "south", "west"] as const) {
           const port = document.createElement("button"); port.type = "button"; port.tabIndex = -1; port.setAttribute("part", "port"); port.dataset.side = side; port.dataset.owner = box.id;
             const arrow = svgElement('svg'); arrow.setAttribute('viewBox', '0 0 16 16'); arrow.setAttribute('aria-hidden', 'true');
@@ -3795,6 +3860,7 @@ export class ProcessModeler<
     }
   }
   private updateToolbar(): void {
+    this.syncCanvasTools();
     const button = (command: string) =>
       this.shadowRoot!.querySelector<HTMLButtonElement>(
         `[data-command=${command}]`,
