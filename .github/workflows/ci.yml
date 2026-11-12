@@ -182,6 +182,24 @@ jobs:
           name: issue-layouts
           path: .regression-tmp/issue-layouts
 
+  modeler-canvas-tools:
+    name: Process Modeler canvas tools (pinned Chromium and Firefox)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.11
+      - name: Check Fit, touch selection, keyboard tools and host controls
+        run: bash tools/preview/container-run.sh 'bun run build:core && BOE_MODELER_BROWSER=chromium BOE_MODELER_EVIDENCE_DIR=/work/.regression-tmp/modeler-tools/chromium node tools/preview/modeler-canvas-tools.mjs && BOE_MODELER_BROWSER=firefox BOE_MODELER_EVIDENCE_DIR=/work/.regression-tmp/modeler-tools/firefox node tools/preview/modeler-canvas-tools.mjs'
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: modeler-canvas-tools
+          path: .regression-tmp/modeler-tools
+
   segmented-reflow:
     name: Segmented control reflow (pinned Chromium and Firefox)
     runs-on: ubuntu-latest

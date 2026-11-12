@@ -197,3 +197,12 @@ const analyticViews = <>
   <box-line-chart series={[{id:"bad",label:"Bad",points:[{x:"2250",y:539}]}]} />
 </>;
 void analyticViews;
+
+const process = document.createElement("box-process-modeler");
+process.canvasTool = "pointer"; process.selectSeveral = true;
+process.addEventListener("canvastoolchange", event => { const tool: "hand" | "pointer" = event.detail.canvasTool; void tool; });
+process.addEventListener("selectseveralchange", event => { const enabled: boolean = event.detail.selectSeveral; void enabled; });
+const processView = <box-process-modeler canvasTool="pointer" selectSeveral={true}
+  oncanvastoolchange={event => { const tool: "hand" | "pointer" = event.detail.canvasTool; void tool; }}
+  onselectseveralchange={event => { const enabled: boolean = event.detail.selectSeveral; void enabled; }} />;
+void processView;

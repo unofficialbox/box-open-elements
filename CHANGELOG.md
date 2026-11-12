@@ -13,6 +13,15 @@ are kept as written.
 
 ---
 
+## 0.47.0 — 2026-11-12
+
+- Center Process Modeler Fit on the actual process bounds, including frames, notes and sections, with a minimum 20px margin; initial Fit centers spare vertical space while preserving readable zoom and saved-view precedence (#622).
+- Add reflected `select-several` / `selectSeveral`, a pressed-state canvas control and `selectseveralchange` with `{ selectSeveral }`. Taps/clicks and Space on focused steps toggle additive selection; focus navigation preserves it, and a live region announces counts. Background drags select without Shift. Add/connect handles are hidden while this mode is active to avoid intercepting taps on small steps (#623).
+- Add reflected `canvas-tool="hand|pointer"` / `canvasTool`, pressed-state controls, V/H canvas shortcuts and `canvastoolchange` with `{ canvasTool }`. Hand remains the default; Pointer drags select, Space temporarily pans, and steps remain draggable in both tools. Host controls belong in the persistent `controls-extra` slot/part (#624).
+- Compatibility: Select several takes precedence over the chosen tool for background selection. Space on a focused step toggles selection while that mode is enabled; Space on the canvas background pans. Existing Shift selection, document ownership, keyboard editing and saved views remain supported.
+- Release core and all six adapters at `0.47.0` with core peers `^0.47.0`; Box Server retains its independent version. Refresh the registry core pin after publication.
+- Existing validation limitations carry forward: manual screen-reader, physical-device chart acceptance and manual tree/diff screen-reader checks remain unfinished. Automated library tests do not establish downstream host adoption.
+
 ## 0.46.0 — 2026-11-09
 
 - Constrain drawer panels to the dynamic viewport so long bodies scroll while headers and footers stay visible (#611).

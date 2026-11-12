@@ -15,6 +15,8 @@ function fixture() {
 }
 afterEach(() => document.body.replaceChildren());
 describe('Process Modeler host-owned immutable clipboard', () => {
+  // Multiple full renderer/paste/undo round trips can exceed 5s under CI V8 coverage.
+  // Keep a bounded budget for these integration cases without changing other tests.
   it.each(['edit', 'delete'])('pastes copy-time graph after source %s, then undoes from paste-time state', change => {
     const { builder, key } = fixture(); let sequence = 0; const captured = vi.fn();
     builder.addEventListener('process-copy-request', event => {
@@ -49,7 +51,7 @@ describe('Process Modeler host-owned immutable clipboard', () => {
     key('v'); expect(builder.document!.boxes.filter(box => box.id.includes('-copy-'))).toHaveLength(4);
     expect(builder.document!.boxes.find(box => box.id === 'a-copy-2')!.title).toBe('Copy-time A');
     builder.undo(); expect(builder.document!.boxes.filter(box => box.id.includes('-copy-'))).toHaveLength(2);
-  });
+  }, 10_000);
   it('passes only IDs and stores an opaque host capability without serializing host capture', () => {
     const { builder, key } = fixture(); const opaque: any = { action: () => 42 }; opaque.self = opaque;
     const paste = vi.fn(() => { expect(opaque.action()).toBe(42); expect(opaque.self).toBe(opaque); });

@@ -9,9 +9,15 @@ const properties: BoxElementProperties<"box-process-modeler"> = {
     {key: 'count', label: 'Count', kind: 'number', value: '', min: 1, max: 10, step: 'any'},
   ]},
   initialView: "fit",
+  canvasTool: "pointer",
+  selectSeveral: true,
   connectionsHelp: "Connections are set up by the host.",
 };
 const help: string | undefined = properties.connectionsHelp;
 // @ts-expect-error host help is plain text
 const invalid: BoxElementProperties<"box-process-modeler"> = { connectionsHelp: 42 };
 void [properties, help, invalid];
+
+// @ts-expect-error canvas tools are a documented union
+const invalidTool: BoxElementProperties<"box-process-modeler"> = { canvasTool: "move" };
+void invalidTool;
