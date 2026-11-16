@@ -1,6 +1,6 @@
-export const chartAnimationAttributes = ["animated", "animation-preset", "animation-duration", "animation-delay", "animation-stagger", "animation-easing", "animation-loop", "animation-paused"];
-export type ChartAnimationPreset = "auto" | "fade" | "delay" | "drop" | "loop" | "progressive" | "progressive-easing";
-export type ChartAnimationEasing = "linear" | "ease-out-quad" | "ease-out-cubic" | "ease-out-quart" | "ease-out-quint" | "ease-in-quad" | "ease-in-cubic" | "ease-in-quart" | "ease-in-quint" | "ease-in-out-sine" | "ease-out-bounce" | "ease-in-out-elastic";
+import type { ChartAnimationPreset, ChartAnimationEasing } from "./animation-options.js";
+export { chartAnimationAttributes } from "./animation-options.js";
+export type { ChartAnimationPreset, ChartAnimationEasing } from "./animation-options.js";
 interface MotionHost extends HTMLElement {
   animated: boolean; animationPreset: ChartAnimationPreset; animationDuration: number;
   animationDelay: number; animationStagger: number; animationEasing: ChartAnimationEasing;

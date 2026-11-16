@@ -162,3 +162,36 @@ it("reflects plain and headline presentation independently of status and preserv
   expect(card.emphasis).toBe("default");
   card.remove();
 });
+
+
+it("hides an empty footer, restores a later action, and preserves the footer slot (#630)", () => {
+  const card = new MetricCard(); card.value = "42";
+  const slotContent = document.createElement("span"); slotContent.slot = "footer"; slotContent.textContent = "Updated today"; card.append(slotContent);
+  document.body.append(card);
+  const footer = card.shadowRoot!.querySelector<HTMLElement>('[part="footer"]')!;
+  expect(footer.hidden).toBe(true);
+  expect(card.shadowRoot!.querySelector<HTMLSlotElement>('slot[name="footer"]')!.assignedElements()).toEqual([slotContent]);
+  const onAction = vi.fn(); card.addEventListener("action", onAction);
+  card.action = { id: "details", label: "Details" };
+  expect(footer.hidden).toBe(false);
+  (footer.querySelector("button") as HTMLButtonElement).click();
+  expect(onAction).toHaveBeenCalledOnce();
+  card.action = null;
+  expect(footer.hidden).toBe(true);
+  expect(card.shadowRoot!.querySelector('[part="footer"]')).toBe(footer);
+  card.remove();
+});
+
+it("shows the footer only for an action or visible trend through data states (#630)", () => {
+  const card = new MetricCard(); document.body.append(card);
+  const footer = card.shadowRoot!.querySelector<HTMLElement>('[part="footer"]')!;
+  card.trend = { label: "  " }; expect(footer.hidden).toBe(true);
+  card.trend = { label: "Up 12%", direction: "up" }; expect(footer.hidden).toBe(false);
+  for (const state of ["loading", "error", "partial"]) {
+    card.state = state; expect(footer.hidden).toBe(true);
+    card.action = { id: "retry", label: "Retry" }; expect(footer.hidden).toBe(false);
+    card.action = null; expect(footer.hidden).toBe(true);
+  }
+  for (const state of ["stale", "ready"]) { card.state = state; expect(footer.hidden).toBe(false); }
+  card.trend = null; expect(footer.hidden).toBe(true); card.remove();
+});

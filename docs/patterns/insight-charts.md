@@ -100,3 +100,30 @@ dividers through `::part(card)` when figures share a row.
   variant="plain" emphasis="primary" size="compact" tone="success">
 </box-metric-card>
 ```
+
+## Metric Card loading and footer
+
+A static `box-metric-card` loads no chart runtime or chart stylesheet. Its existing
+`animated`, `animation-*`, `replayAnimation()` and `finishAnimation()` controls
+remain supported. Opting into animation fetches the motion module asynchronously;
+the current snapshot and action remain usable while it loads, or if that optional
+fetch fails. Removing or disabling the card during loading prevents motion setup.
+
+```mermaid
+flowchart LR
+  Import[Metric Card import] --> Static[Snapshot and actions]
+  Static --> OptIn{animated enabled?}
+  OptIn -->|No| Static
+  OptIn -->|Yes| Motion[Load optional motion module]
+  Motion --> Current[Animate current connected snapshot]
+```
+
+The internal `footer` part is hidden when it has no action and no visible trend,
+removing its divider and grid gap. Adding an action or a visible trend shows it
+again. Trends suppressed by loading/error/partial data states do not keep an
+empty footer open; an action still does. The separate `slot="footer"` remains
+available for host content.
+
+Run `node tools/preview/metric-card-bundle.mjs` after `bun run build:core` to check
+the isolated production entry (18,000 bytes / 5,500 gzip maximum), the absence of
+eager chart modules, and the deferred animation chunk.

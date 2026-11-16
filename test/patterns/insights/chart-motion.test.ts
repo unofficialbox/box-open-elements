@@ -19,7 +19,7 @@ interface Recorded { element:Element; frames:Keyframe[]; options:KeyframeAnimati
 let recorded:Recorded[];
 let media:MediaQueryList;
 let animateDescriptor:PropertyDescriptor|undefined;
-const flush=async()=>{await Promise.resolve();await Promise.resolve();};
+const flush=async()=>{await vi.dynamicImportSettled();await Promise.resolve();await Promise.resolve();};
 function mount(id="grouped-bar-chart",attributes=""):ChartElement {
   const container=document.createElement("div");container.innerHTML=fixtures[id].replace(`<box-${id}`,`<box-${id} ${attributes}`);
   document.body.append(container);return container.querySelector(`box-${id}`)!;
