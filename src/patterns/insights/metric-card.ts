@@ -1,7 +1,7 @@
 export type { ChartAnimationPreset, ChartAnimationEasing } from "./chart-motion.js";
-import { chartStyles } from "./chart-styles.js";
+import { AnimationOptionsElement, chartAnimationAttributes } from "./animation-options.js";
+import type { ChartMotion } from "./chart-motion.js";
 import { syncKeyedChildren, actionButton } from "../internal/keyed-children.js";
-import { ChartElement, chartAnimationAttributes } from "./chart-element.js";
 import { boePanel } from "../../foundations/geometry/index.js";
 import {
   boeBrandInteractiveStyles,
@@ -23,9 +23,14 @@ type MetricCardTrend = {
 };
 
 
-const elementStyles = chartStyles + `
+const elementStyles = `
+        *, *::before, *::after { box-sizing: border-box; }
+        button:focus-visible { outline:2px solid var(--boe-token-surface-surface-brand,#0061d5); outline-offset:3px; }
+        [part="message"] { overflow-wrap:anywhere; }
+
         :host {
           display: grid;
+          contain-intrinsic-inline-size:36rem;
           min-width: 0;
           color: var(--boe-chart-ink,color-mix(in srgb,var(--boe-token-text-text,#102347) 88%,var(--boe-token-surface-surface-brand,#0061d5)));
           font: inherit;
@@ -143,6 +148,8 @@ const elementStyles = chartStyles + `
         }
 
         [part="footer"] {
+          border-top:1px solid var(--boe-token-stroke-stroke,#dce3ed);
+          padding-top:1rem;
           display: flex;
           flex-wrap: wrap;
           align-items: center;
@@ -183,7 +190,7 @@ const elementStyles = chartStyles + `
         }
       `;
 
-export class MetricCard extends ChartElement {
+export class MetricCard extends AnimationOptionsElement {
   static readonly tagName: string = DEFAULT_TAG_NAME;
   static get observedAttributes(): string[] {
     return [...chartAnimationAttributes, "state", "status-message", "action", "eyebrow", "message", "status", "heading", "trend", "value", "size", "tone", "variant", "emphasis"];
@@ -308,13 +315,48 @@ export class MetricCard extends ChartElement {
     this.setAttribute("value", value);
   }
 
+  private motion?: ChartMotion;
+  private motionLoad?: Promise<void>;
+  private finishPending = false;
+
   connectedCallback(): void {
+    this.upgradeAnimationProperties();
     super.connectedCallback();
   }
-
+  disconnectedCallback(): void {
+    this.motion?.disconnect();
+    this.motion = undefined;
+    this.finishPending = false;
+    super.disconnectedCallback();
+  }
   attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null): void {
-
+    if (chartAnimationAttributes.includes(name)) {
+      if (oldValue !== newValue && this.isRendered) this.syncMotion(name !== "animation-paused");
+      return;
+    }
     super.attributeChangedCallback(name, oldValue, newValue);
+  }
+  replayAnimation(): void {
+    this.finishPending = false;
+    if (this.motion) this.motion.replay(); else this.syncMotion(true);
+  }
+  finishAnimation(): void {
+    this.finishPending = !!this.motionLoad;
+    this.motion?.finish();
+  }
+  private syncMotion(force = false): void {
+    if (this.motion) { this.motion.rendered(force); return; }
+    if (!this.animated || !this.isConnected || this.motionLoad) return;
+    // Static cards never import chart code. Read current options/data after loading,
+    // and do not attach listeners to a card removed or disabled in the meantime.
+    this.motionLoad = import("./chart-motion.js").then(({ ChartMotion }) => {
+      if (!this.isConnected || !this.animated) return;
+      this.motion = new ChartMotion(this);
+      this.motion.connect();
+      if (!this.finishPending) this.motion.rendered(true);
+    }).catch(() => {
+      // An unavailable optional chunk must not prevent the snapshot or action.
+    }).finally(() => { this.motionLoad = undefined; });
   }
 
   private parseJsonAttribute<T>(name: string, fallback: T): T {
@@ -350,7 +392,11 @@ export class MetricCard extends ChartElement {
       if(button&&footer.contains(button)&&action&&action.id===button.dataset.actionId)this.emitAction(action);
     });
   }
-  protected renderChart(): void {
+  protected update(): void {
+    this.renderMetric();
+    this.syncMotion();
+  }
+  private renderMetric(): void {
     if(!this.isRendered)return;
     const root=this.shadowRoot!;
     root.querySelector('[part="title"]')!.textContent=this.heading;
@@ -365,8 +411,9 @@ export class MetricCard extends ChartElement {
     value.setAttribute("aria-busy",String(this.state === "loading"));
     const announcement=root.querySelector<HTMLElement>('[part="data-status"]')!;
     if(announcement.textContent!==stateStatus)announcement.textContent=stateStatus;
-    const trend=root.querySelector<HTMLElement>('[part="trend"]')!,data=this.trend;trend.hidden=!data || ["loading","error","partial"].includes(this.state);trend.textContent=data?.label??"";trend.dataset.direction=data?.direction??"flat";trend.dataset.tone=data?.tone??"neutral";
+    const trend=root.querySelector<HTMLElement>('[part="trend"]')!,data=this.trend;trend.hidden=!data?.label?.trim() || ["loading","error","partial"].includes(this.state);trend.textContent=data?.label??"";trend.dataset.direction=data?.direction??"flat";trend.dataset.tone=data?.tone??"neutral";
     const action=this.action;
+    root.querySelector<HTMLElement>('[part="footer"]')!.hidden = !action && trend.hidden;
     syncKeyedChildren(root.querySelector('[part="footer"]')!,action?[action]:[],action=>action.id,()=>actionButton("action"),(button,action)=>{button.dataset.actionId=action.id;button.dataset.tone=action.tone??"neutral";button.textContent=action.label;},trend);
   }
 }

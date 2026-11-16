@@ -182,6 +182,24 @@ jobs:
           name: issue-layouts
           path: .regression-tmp/issue-layouts
 
+  metric-card:
+    name: Metric Card footer and split bundle (pinned Chromium and Firefox)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.11
+      - name: Check production bundle budget and native card transitions
+        run: bash tools/preview/container-run.sh 'bun run build:core && BOE_METRIC_BUNDLE_DIR=/work/.regression-tmp/metric-card/bundle node tools/preview/metric-card-bundle.mjs && BOE_METRIC_BUNDLE_DIR=/work/.regression-tmp/metric-card/bundle BOE_METRIC_BROWSER=chromium BOE_METRIC_EVIDENCE_DIR=/work/.regression-tmp/metric-card/chromium node tools/preview/metric-card.mjs && BOE_METRIC_BUNDLE_DIR=/work/.regression-tmp/metric-card/bundle BOE_METRIC_BROWSER=firefox BOE_METRIC_EVIDENCE_DIR=/work/.regression-tmp/metric-card/firefox node tools/preview/metric-card.mjs'
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: metric-card
+          path: .regression-tmp/metric-card
+
   modeler-canvas-tools:
     name: Process Modeler canvas tools (pinned Chromium and Firefox)
     runs-on: ubuntu-latest

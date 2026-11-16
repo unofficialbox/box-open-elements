@@ -13,6 +13,13 @@ are kept as written.
 
 ---
 
+## 0.47.2 — 2026-11-16
+
+- Hide the Metric Card footer when it has neither an action nor a visible trend, including loading/error/partial snapshots. Later actions and trends restore the existing footer; the public footer slot remains available (#630).
+- Keep static Metric Card imports independent of chart runtime and chart styling. Existing animation properties and replay/finish controls remain supported; opting into `animated` loads chart motion asynchronously. Add a production bundle budget and native-browser lazy-loading checks (#631).
+- Release core and all six adapters at `0.47.2` with core peers `^0.47.2`; Box Server retains its independent version. Refresh the registry core pin after publication.
+- Existing manual screen-reader, physical-device chart and downstream host acceptance limitations remain as documented in 0.47.0.
+
 ## 0.47.1 — 2026-11-12
 
 - Give Process Modeler steps and frames an explicit default arrow cursor in Pointer or Select several mode, so host canvas cursor styling cannot make them appear as grab targets. Both tools still move steps and frames; active moves show `grabbing` (#627).
