@@ -26,7 +26,8 @@ type MetricCardTrend = {
 const elementStyles = `
         *, *::before, *::after { box-sizing: border-box; }
         button:focus-visible { outline:2px solid var(--boe-token-surface-surface-brand,#0061d5); outline-offset:3px; }
-        [part="message"] { overflow-wrap:anywhere; }
+        [part="message"], [part="title"], [part="status"] { overflow-wrap:anywhere; }
+        [part="status"] { line-height:1.5; }
 
         :host {
           display: grid;
@@ -51,6 +52,8 @@ const elementStyles = `
         [part="card"] { display:grid; align-content:start; gap:1rem; padding:1.5rem; border:1px solid var(--boe-token-stroke-stroke,#e8e8e8); border-radius:.375rem; background:var(--boe-token-surface-surface,#fff); }
         [part="header"] {
           display: grid;
+          align-items:start;
+          justify-content:space-between;
           gap: 0.25rem;
         }
 

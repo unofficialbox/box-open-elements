@@ -30,7 +30,7 @@ try{
   assert.ok(scripts.length>1,'Animation did not load its deferred chunk');await page.evaluate(()=>card.finishAnimation());assert.equal(await card.locator('[part=value]').evaluate(e=>e.getAnimations().length),0);
   await page.evaluate(()=>card.replayAnimation());await page.waitForFunction(()=>card.shadowRoot.querySelector('[part=value]').getAnimations().length>0);
   await page.evaluate(()=>card.animated=false);await page.waitForFunction(()=>card.shadowRoot.querySelector('[part=value]').getAnimations().length===0);
-  assert.deepEqual(errors,[]);assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));results.push({engine,width,theme,staticRequests:1,animationLazy:true,footerTransitions:'passed',console:'clean'});await page.close();
+  await page.evaluate(()=>{card.heading='LongIdentifier'.repeat(12);card.status='LongStatus'.repeat(12);});assert.deepEqual(errors,[]);assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'Long heading/status overflows');await page.screenshot({path:`${evidence}/${engine}-${width}-${theme}-long-labels.png`,fullPage:true});results.push({engine,width,theme,staticRequests:1,animationLazy:true,footerTransitions:'passed',console:'clean'});await page.close();
  }
  // A failed optional chunk leaves the static snapshot and action operable.
  const failed=await browser.newPage();await failed.route('**/chart-motion-*.js',route=>route.abort());
